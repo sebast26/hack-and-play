@@ -1,0 +1,1 @@
+{"type":"record","name":"UserDisabled","namespace":"me.sgorecki.iam","doc":"When user was disabled","fields":[{"name":"userUuid","type":"string","doc":"User UUID","logicalType":"uuid"},{"name":"disabledAt","type":"long","doc":"Timestamp when user was disabled","logicalType":"timestamp-mills"}]}
