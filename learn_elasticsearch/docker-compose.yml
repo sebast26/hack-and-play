@@ -10,3 +10,9 @@ services:
       - "9300:9300"
     environment:
       discovery.type: single-node
+  kibana:
+    image: kibana:6.8.18
+    hostname: kibana
+    container_name: kibana
+    ports:
+      - "5601:5601"
