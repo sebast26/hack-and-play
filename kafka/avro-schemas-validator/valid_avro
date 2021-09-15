@@ -1,0 +1,24 @@
+{
+    "type" : "record",
+    "name" : "UserDisabled",
+    "namespace" : "me.sgorecki.iam",
+    "doc" : "When user was disabled",
+    "fields" : [
+      {
+        "name" : "userUuid",
+        "type" : {
+          "type" : "string",
+          "logicalType" : "uuid"
+        },
+        "doc" : "User UUID"
+      },
+      {
+        "name" : "disabledAt",
+        "type" : {
+          "type" : "long",
+          "logicalType" : "timestamp-mills"
+        },
+        "doc" : "Timestamp when user was disabled"
+      }
+    ]
+  }

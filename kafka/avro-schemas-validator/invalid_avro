@@ -1,0 +1,1 @@
+{"type":"record","name":"UserCreated","namespace":"me.sgorecki.iam","doc":"When user was created","fields":[{"name":"userUuid","type":"string","doc":"User UUID","logicalType":"uuid"},{"name":"email","type":"string","doc":"email address provided during user registration"},{"name":"createAt","type":"long","doc":"Timestamp when user was created","logicalType":"timestamp-millis"}]}
