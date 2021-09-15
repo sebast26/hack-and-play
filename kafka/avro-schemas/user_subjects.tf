@@ -42,7 +42,7 @@ resource "schemaregistry_schema" "me_sgorecki_iam_UserDisabled" {
       {
         name : "userUuid",
         type : {
-          type : "string"
+          type : "string",
           logicalType : "uuid"
         },
         doc : "User UUID"
