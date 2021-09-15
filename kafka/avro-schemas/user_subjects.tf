@@ -8,8 +8,10 @@ resource "schemaregistry_schema" "me_sgorecki_iam_UserCreated" {
     "fields" : [
       {
         name : "userUuid",
-        type : "string",
-        logicalType : "uuid",
+        type : {
+          type: "string",
+          logicalType : "uuid"
+        }
         doc : "User UUID"
       },
       {
@@ -19,8 +21,10 @@ resource "schemaregistry_schema" "me_sgorecki_iam_UserCreated" {
       },
       {
         name : "createAt",
-        type : "long",
-        logicalType : "timestamp-millis",
+        type : {
+          type : "long",
+          logicalType : "timestamp-mills"
+        },
         doc : "Timestamp when user was created"
       }
     ]
@@ -37,14 +41,18 @@ resource "schemaregistry_schema" "me_sgorecki_iam_UserDisabled" {
     "fields" : [
       {
         name : "userUuid",
-        type : "string",
-        logicalType : "uuid",
+        type : {
+          type : "string"
+          logicalType : "uuid"
+        },
         doc : "User UUID"
       },
       {
         name : "disabledAt",
-        type : "long",
-        logicalType : "timestamp-mills",
+        type : {
+          type : "long",
+          logicalType : "timestamp-mills"
+        },
         doc : "Timestamp when user was disabled"
       }
     ]
