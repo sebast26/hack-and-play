@@ -1,0 +1,22 @@
+curl -X POST "localhost:9200/songs/_doc/a_gu_gu/_update" -H 'Content-Type: application/json' -d'
+{
+	"doc": {
+		"name":"A gu, gu",
+		"hasChorus":false,
+		"beginsWithChorus":false,
+		"text":"Chcemy cię uwielbiać\nTak jak małe dzieci\nKtóre nie potrafią\nJeszcze nic powiedzieć\n\nA gu gu a gu gu a gu gu\nA gu a gu a gu gu\n\nA to nasze gu gu\nBoże ty rozumiesz\nMałe modli się najlepiej\nDuże modli się jak umie\n\nA gu gu a gu gu a gu gu\nA gu a gu a gu gu\n\nNamów swoją mamę\nNamów Tatę swego\nNiech spróbują tak jak dzieci\nModlić się do niego\nNiech spróbują tak jak dzieci\nModlić się do niego\n\nA gu gu a gu gu a gu gu\nA gu a gu a gu gu\n\nNa naj naj naj\n\nA gu gu a gu gu a gu gu\nA gu a gu a gu gu\n\nNa naj naj naj"
+	},
+	"doc_as_upsert": true
+}
+'
+curl -X POST "localhost:9200/songs/_doc/abysmy_byli_jedno/_update" -H 'Content-Type: application/json' -d'
+{
+	"doc": {
+		"name":"Abyśmy byli jedno",
+		"hasChorus":false,
+		"beginsWithChorus":false,
+		"text":"1. Abyśmy byli jedno, błagamy Cię Ojcze nasz /2x\nUczyń wszystkich nas narzędziem Twego pokoju,\nAby miłość Twa mieszkała w każdym z nas.\n\n2. Zachowaj nas od złego, błagamy Cię Ojcze nasz /2x\nUczyń wszystkich nas narzędziem Twego pokoju,\nAby miłość Twa mieszkała w każdym z nas.\n\n3. Uświęć nas w prawdzie, błagamy Cię Ojcze nasz /2x\nUczyń wszystkich nas narzędziem Twego pokoju,\nAby miłość Twa mieszkała w każdym z nas."
+	},
+	"doc_as_upsert": true
+}
+'
