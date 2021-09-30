@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"text/template"
 )
 
 type Page struct {
@@ -26,10 +26,15 @@ func loadPage(title string) (*Page, error) {
 	return &Page{Title: title, Body: body}, nil
 }
 
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+	t, _ := template.ParseFiles(tmpl + ".html")
+	t.Execute(w, p)
+}
+
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Path[len("/view/"):]
 	page, _ := loadPage(title)
-	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", page.Title, page.Body)
+	renderTemplate(w, "view", page)
 }
 
 func editHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,12 +43,7 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		page = &Page{Title: title}
 	}
-	fmt.Fprintf(w, "<h1>Editing %s</h1>"+
-		"<form action=\"/save/%s\" method=\"POST\">"+
-		"<textarea name=\"body\">%s</textarea><br>"+
-		"<input type=\"submit\" value=\"Save\">"+
-		"</form>",
-		page.Title, page.Title, page.Body)
+	renderTemplate(w, "edit", page)
 }
 
 func saveHandler(w http.ResponseWriter, r *http.Request) {
