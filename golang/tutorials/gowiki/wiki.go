@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,11 +12,13 @@ import (
 const RootPageName = "FrontPage"
 
 type Page struct {
-	Title string
-	Body  []byte
+	Title        string
+	Body         []byte
+	LinkableBody []byte
 }
 
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+var linkRegexp = regexp.MustCompile("\\[([a-zA-Z0-9]+)\\]")
 var templates = template.Must(template.ParseFiles("tmpl/view.html", "tmpl/edit.html"))
 
 func (p *Page) save() error {
@@ -29,7 +32,12 @@ func loadPage(title string) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Page{Title: title, Body: body}, nil
+	linkableBody := linkRegexp.ReplaceAllFunc(body, func(bytes []byte) []byte {
+		pageTitle := bytes[1 : len(bytes)-1]
+		link := fmt.Sprintf("<a href=\"/view/%s\">%s</a>", pageTitle, pageTitle)
+		return []byte(link)
+	})
+	return &Page{Title: title, Body: body, LinkableBody: linkableBody}, nil
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
@@ -41,7 +49,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/view/" + RootPageName, http.StatusFound)
+	http.Redirect(w, r, "/view/"+RootPageName, http.StatusFound)
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
