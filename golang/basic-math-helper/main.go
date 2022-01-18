@@ -10,6 +10,14 @@ import (
 func main() {
 	app := &cli.App{
 		Name: "creates basic math exercises",
+		Flags: []cli.Flag{
+			&cli.IntFlag{
+				Name:    "num_exercises",
+				Aliases: []string{"n"},
+				Value:   30,
+				Usage:   "number of exercises to generate",
+			},
+		},
 		Commands: []*cli.Command{
 			{
 				Name:   "subtract_result_always_9",

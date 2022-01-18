@@ -27,7 +27,8 @@ COMMANDS:
    help, h                   Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --help, -h  show help (default: false)
+   --num_exercises value, -n value  number of exercises to generate (default: 30)
+   --help, -h                       show help (default: false)
 ```
 
 To generate simple exercises about `subtract_result_always_9` subject you can invoke following command:
@@ -35,4 +36,10 @@ To generate simple exercises about `subtract_result_always_9` subject you can in
 ```bash
 ./basic-math-helper subtract_result_always_9
 ```
+You can customise how many exercises will be generated with help of `--num_exercises` flag, ie:
 
+```bash
+./basic-math-helper -n 50 subtract_result_always_9
+```
+
+The default number of exercises is 30.
