@@ -1,0 +1,5 @@
+Finish Haskell IO
+Wrote a solution for Haskell
+Add Sentry in atlas-consumer
+Play with KCL
+Odebrac dzieci od dziadkow
