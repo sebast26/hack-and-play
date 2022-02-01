@@ -50,3 +50,4 @@ Program offers following options for generating exercises:
 
 - `subtract_result_always_9` - generates exercises with subtract operations that will always result in 9
 - `random_subtract` - generates random set of subtract exercises without any scheme
+- `random_addition` - generates random set of addition exercises without any scheme

@@ -13,17 +13,17 @@ func RandomSubtract(ctx *cli.Context) error {
 	rand.Seed(time.Now().UnixNano())
 
 	num := ctx.Int("num_exercises")
-	exercises := generateRandomExercise(num)
+	exercises := generateRandomSubtractExercise(num)
 	printExercises(exercises)
 	return nil
 }
 
-func generateRandomExercise(num int) []string {
+func generateRandomSubtractExercise(num int) []string {
 	exercises := make([]string, 0)
 	for i := 0; i < num; i++ {
 		f := rand.Intn(MAX + 1)
 		s := rand.Intn(f + 1)
-		exercises = append(exercises, fmt.Sprintf("%d - %2d =", f, s))
+		exercises = append(exercises, fmt.Sprintf("%2d - %2d =", f, s))
 	}
 	return exercises
 }

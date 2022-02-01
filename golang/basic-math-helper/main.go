@@ -30,6 +30,11 @@ func main() {
 				Usage:  "generates random set of subtract exercises without any scheme",
 				Action: cmd.RandomSubtract,
 			},
+			{
+				Name:   "random_addition",
+				Usage:  "generates random set of addition exercises without any scheme",
+				Action: cmd.RandomAddition,
+			},
 		},
 	}
 	err := app.Run(os.Args)
