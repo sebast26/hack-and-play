@@ -26,9 +26,9 @@ func main() {
 				Action: cmd.SubtractResultAlways9,
 			},
 			{
-				Name:   "random",
-				Usage:  "generates random set of exercises without any scheme",
-				Action: cmd.Random,
+				Name:   "random_subtract",
+				Usage:  "generates random set of subtract exercises without any scheme",
+				Action: cmd.RandomSubtract,
 			},
 		},
 	}

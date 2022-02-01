@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func Random(ctx *cli.Context) error {
-	fmt.Println("Random!")
+func RandomSubtract(ctx *cli.Context) error {
+	fmt.Println("Random subtract!")
 
 	rand.Seed(time.Now().UnixNano())
 
