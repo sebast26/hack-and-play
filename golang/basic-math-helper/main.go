@@ -1,7 +1,7 @@
 package main
 
 import (
-	"besic-math-helper/cmd"
+	"basic-math-helper/cmd"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"

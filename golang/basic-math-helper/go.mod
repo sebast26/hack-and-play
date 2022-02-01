@@ -1,4 +1,4 @@
-module besic-math-helper
+module basic-math-helper
 
 go 1.16
 
