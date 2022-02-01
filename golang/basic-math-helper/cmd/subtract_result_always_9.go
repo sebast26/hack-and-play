@@ -33,13 +33,3 @@ func generateSubtractAlways9Exercise(num int) []string {
 	}
 	return exercises
 }
-
-func printExercises(exercises []string) {
-	nextLine := 10
-	for i, e := range exercises {
-		fmt.Printf("%-14s", e)
-		if i > 0 && i%nextLine == nextLine-1 {
-			fmt.Println()
-		}
-	}
-}
