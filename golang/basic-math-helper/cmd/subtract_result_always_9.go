@@ -9,7 +9,7 @@ import (
 
 const (
 	MIN    = 11
-	MAX    = 20
+	MAX    = 30
 	RESULT = 9
 )
 
@@ -19,12 +19,12 @@ func SubtractResultAlways9(ctx *cli.Context) error {
 	rand.Seed(time.Now().UnixNano())
 
 	num := ctx.Int("num_exercises")
-	exercises := generateExercise(num)
+	exercises := generateSubtractAlways9Exercise(num)
 	printExercises(exercises)
 	return nil
 }
 
-func generateExercise(num int) []string {
+func generateSubtractAlways9Exercise(num int) []string {
 	exercises := make([]string, 0)
 	for i := 0; i < num; i++ {
 		f := rand.Intn(MAX-MIN+1) + MIN

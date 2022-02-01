@@ -43,3 +43,10 @@ You can customise how many exercises will be generated with help of `--num_exerc
 ```
 
 The default number of exercises is 30.
+
+## Features
+
+Program offers following options for generating exercises:
+
+- `subtract_result_always_9` - generates exercises with subtract operations that will always result in 9
+- `random` - generates random set of exercises without any scheme
