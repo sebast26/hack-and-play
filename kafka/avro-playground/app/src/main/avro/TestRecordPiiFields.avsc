@@ -1,0 +1,66 @@
+{
+  "type": "record",
+  "name": "TestRecordPiiFields",
+  "fields": [
+    {
+      "name": "stringPiiField",
+      "type": "string",
+      "tags": [
+        "pii"
+      ]
+    },
+    {
+      "name": "nullableStringPiiField",
+      "type": [
+        {
+          "type": "string"
+        },
+        "null"
+      ],
+      "tags": [
+        "pii"
+      ]
+    },
+    {
+      "name": "unionPiiField",
+      "type": [
+        {
+          "type": "int"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "tags": [
+        "pii"
+      ]
+    },
+    {
+      "name": "mapWithStringValuesPiiField",
+      "type": {
+        "type": "map",
+        "values": "string",
+        "default": {},
+        "tags": [
+          "pii"
+        ]
+      }
+    },
+    {
+      "name": "nestedRecordField",
+      "type": {
+        "type": "record",
+        "name": "NestedRecordWithPiiField",
+        "fields": [
+          {
+            "name": "nestedStringPiiField",
+            "type": "string",
+            "tags": [
+              "pii"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

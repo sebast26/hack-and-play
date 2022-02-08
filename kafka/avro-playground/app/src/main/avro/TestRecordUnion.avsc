@@ -1,0 +1,20 @@
+{
+  "type": "record",
+  "name": "TestRecordUnion",
+  "fields": [
+    {
+      "name": "foo",
+      "type": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "int"
+        }
+      ],
+      "tags": [
+        "pii"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "TestRecordString",
+  "fields": [
+    {
+      "name": "foo",
+      "type": "string",
+      "tags": [
+        "pii"
+      ]
+    }
+  ]
+}

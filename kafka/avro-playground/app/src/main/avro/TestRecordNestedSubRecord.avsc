@@ -1,0 +1,22 @@
+{
+  "type": "record",
+  "name": "TestRecordNestedSubRecord",
+  "fields": [
+    {
+      "name": "foo",
+      "type": {
+        "type": "record",
+        "name": "NestedSubRecord",
+        "fields": [
+          {
+            "name": "bar",
+            "type": "string",
+            "tags": [
+              "pii"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

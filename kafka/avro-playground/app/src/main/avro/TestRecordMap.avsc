@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "TestRecordMap",
+  "fields": [
+    {
+      "name": "foo",
+      "type": {
+        "type": "map",
+        "values": "string",
+        "tags": [
+          "pii"
+        ]
+      }
+    }
+  ]
+}

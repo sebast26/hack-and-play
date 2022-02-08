@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "TestRecordUppercasePiiTag",
+  "fields": [
+    {
+      "name": "foo",
+      "type": "string",
+      "tags": [
+        "PII"
+      ]
+    }
+  ]
+}

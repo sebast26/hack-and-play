@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "TestRecordNoPiiTag",
+  "fields": [
+    {
+      "name": "foo",
+      "type": "string"
+    }
+  ]
+}

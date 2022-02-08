@@ -1,0 +1,14 @@
+{
+  "type": "record",
+  "namespace": "com.acme",
+  "name": "TestRecordNamespace",
+  "fields": [
+    {
+      "name": "foo",
+      "type": "string",
+      "tags": [
+        "pii"
+      ]
+    }
+  ]
+}

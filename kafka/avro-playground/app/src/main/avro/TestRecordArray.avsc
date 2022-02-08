@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "TestRecordArray",
+  "fields": [
+    {
+      "name": "foo",
+      "type": {
+        "type": "array",
+        "items": "string",
+        "tags": [
+          "pii"
+        ]
+      }
+    }
+  ]
+}

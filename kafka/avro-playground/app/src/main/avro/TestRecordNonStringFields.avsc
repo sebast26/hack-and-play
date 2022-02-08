@@ -1,0 +1,79 @@
+{
+  "type": "record",
+  "name": "TestRecordNonStringFields",
+  "fields": [
+    {
+      "name": "enumField",
+      "type": {
+        "name": "MyEnumType",
+        "type": "enum",
+        "symbols": [
+          "FOO"
+        ]
+      },
+      "tags": [
+        "pii"
+      ]
+    },
+    {
+      "name": "fixedField",
+      "type": {
+        "name": "MyFixedType",
+        "type": "fixed",
+        "size": 16
+      },
+      "tags": [
+        "pii"
+      ]
+    },
+    {
+      "name": "bytesField",
+      "type": "bytes",
+      "tags": [
+        "pii"
+      ]
+    },
+    {
+      "name": "intField",
+      "type": "int",
+      "tags": [
+        "pii"
+      ]
+    },
+    {
+      "name": "longField",
+      "type": "long",
+      "tags": [
+        "pii"
+      ]
+    },
+    {
+      "name": "floatField",
+      "type": "float",
+      "tags": [
+        "pii"
+      ]
+    },
+    {
+      "name": "doubleField",
+      "type": "double",
+      "tags": [
+        "pii"
+      ]
+    },
+    {
+      "name": "booleanField",
+      "type": "boolean",
+      "tags": [
+        "pii"
+      ]
+    },
+    {
+      "name": "nullField",
+      "type": "null",
+      "tags": [
+        "pii"
+      ]
+    }
+  ]
+}

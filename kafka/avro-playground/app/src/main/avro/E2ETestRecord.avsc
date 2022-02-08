@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "E2ETestRecord",
+  "fields": [
+    {
+      "name": "foo",
+      "type": "string",
+      "tags": [
+        "pii"
+      ]
+    }
+  ]
+}
