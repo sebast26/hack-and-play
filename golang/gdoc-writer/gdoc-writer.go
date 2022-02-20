@@ -12,5 +12,6 @@ func main() {
 		log.Fatalf("Unable to read data from stdin: %v", err)
 	}
 
-	google.CreateDocument(string(b))
+	docLocation := google.CreateDocument(string(b))
+	log.Printf("Successfully created Google Document under: %s", docLocation)
 }

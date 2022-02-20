@@ -1,15 +1,17 @@
 package google
 
 import (
+	"fmt"
 	"google.golang.org/api/docs/v1"
 	"log"
 )
 
-func CreateDocument(content string) {
+const DocumentLocationTemplate = "https://docs.google.com/document/d/%s/edit"
+
+func CreateDocument(content string) string {
 	srv := NewDocumentService()
 
-	newDoc := docs.Document{Title: "First document from Go API"}
-	doc, err := srv.Documents.Create(&newDoc).Do()
+	doc, err := srv.Documents.Create(&docs.Document{Title: "First document from Go API"}).Do()
 	if err != nil {
 		log.Fatalf("Unable to create document: %v", err)
 	}
@@ -27,4 +29,6 @@ func CreateDocument(content string) {
 	if err != nil {
 		log.Fatalf("Update to update document stype: %v", err)
 	}
+
+	return fmt.Sprintf(DocumentLocationTemplate, doc.DocumentId)
 }
