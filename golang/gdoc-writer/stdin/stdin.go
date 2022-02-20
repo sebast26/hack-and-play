@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func readStdin() ([]byte, error) {
+func ReadStdin() ([]byte, error) {
 	reader := bufio.NewReader(os.Stdin)
 	buf := make([]byte, 0, 4*1024)
 	output := make([]byte, 0)
