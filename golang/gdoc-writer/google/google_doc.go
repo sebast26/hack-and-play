@@ -4,14 +4,23 @@ import (
 	"fmt"
 	"google.golang.org/api/docs/v1"
 	"log"
+	"strings"
+	"time"
 )
 
-const DocumentLocationTemplate = "https://docs.google.com/document/d/%s/edit"
+const (
+	// documentLocationTemplate is a template used by Google Docs to access document by ID from the browser
+	documentLocationTemplate = "https://docs.google.com/document/d/%s/edit"
 
-func CreateDocument(content string) string {
+	// maxContentLengthToTitle specifies maximum number of characters from context that could be included inside document title
+	maxContentLengthToTitle = 30
+)
+
+func CreateDocument(content string, prefix string) string {
 	srv := NewDocumentService()
 
-	doc, err := srv.Documents.Create(&docs.Document{Title: "First document from Go API"}).Do()
+	title := createDocumentTitle(content, prefix)
+	doc, err := srv.Documents.Create(&docs.Document{Title: title}).Do()
 	if err != nil {
 		log.Fatalf("Unable to create document: %v", err)
 	}
@@ -30,5 +39,18 @@ func CreateDocument(content string) string {
 		log.Fatalf("Update to update document stype: %v", err)
 	}
 
-	return fmt.Sprintf(DocumentLocationTemplate, doc.DocumentId)
+	return fmt.Sprintf(documentLocationTemplate, doc.DocumentId)
+}
+
+func createDocumentTitle(context string, prefix string) string {
+	i := strings.Index(context, "\n")
+	if i == -1 || i > maxContentLengthToTitle {
+		i = maxContentLengthToTitle
+	}
+
+	currentTime := time.Now()
+	if prefix == "" {
+		return fmt.Sprintf("%s - %s...", currentTime.Format("2006-01-02"), context[:i])
+	}
+	return fmt.Sprintf("%s %s - %s...", prefix, currentTime.Format("2006-01-02"), context[:i])
 }
