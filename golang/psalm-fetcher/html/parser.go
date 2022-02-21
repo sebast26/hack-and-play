@@ -20,8 +20,31 @@ func Parse(reader io.Reader) (*html.Node, error) {
 }
 
 // GetElementById search for id in given html fragment and returns html node when element was found
+// It returns nil otherwise.
 func GetElementById(n *html.Node, id string) *html.Node {
-	return traverse(n, id)
+	return traverse(n, id, "")
+}
+
+// GetTagByName search for given tag name in given html fragment and returns html node when element was found.
+// It returns nil otherwise.
+func GetTagByName(n *html.Node, name string) *html.Node {
+	return traverse(n, "", name)
+}
+
+func FindAllParagraphsWithText(n *html.Node) []string {
+	output := make([]string, 0)
+	if content := paragraphWithContent(n); content != "" {
+		return append(output, content)
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		content := FindAllParagraphsWithText(c)
+		if len(content) > 0 {
+			output = append(output, content...)
+		}
+	}
+
+	return output
 }
 
 // RenderNode renders given html fragment and returns string
@@ -35,6 +58,10 @@ func RenderNode(n *html.Node) string {
 	}
 
 	return buf.String()
+}
+
+func RenderNodeContent(n *html.Node) string {
+	return n.FirstChild.Data
 }
 
 func getAttribute(n *html.Node, key string) (string, bool) {
@@ -59,17 +86,32 @@ func checkId(n *html.Node, id string) bool {
 	return false
 }
 
-func traverse(n *html.Node, id string) *html.Node {
-	if checkId(n, id) {
+func checkName(n *html.Node, name string) bool {
+	return n.Type == html.ElementNode && n.Data == name
+}
+
+func traverse(n *html.Node, id string, name string) *html.Node {
+	if id != "" && name != "" && checkId(n, id) && checkName(n, name) {
+		return n
+	} else if id != "" && checkId(n, id) {
+		return n
+	} else if name != "" && checkName(n, name) {
 		return n
 	}
 
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		res := traverse(c, id)
+		res := traverse(c, id, name)
 		if res != nil {
 			return res
 		}
 	}
 
 	return nil
+}
+
+func paragraphWithContent(n *html.Node) string {
+	if n.Type == html.ElementNode && n.Data == "p" && n.FirstChild.Type == html.TextNode {
+		return RenderNode(n)
+	}
+	return ""
 }

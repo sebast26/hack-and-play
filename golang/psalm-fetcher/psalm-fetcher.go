@@ -27,10 +27,18 @@ func main() {
 	}
 
 	tag := html.GetElementById(doc, "tabnowy01")
-	if err != nil {
-		log.Fatalf("Unable to find element with id tabnowy01: %v", err)
+	if tag == nil {
+		log.Fatalf("Unable to find psalm element id")
 	}
 
-	fmt.Println(html.RenderNode(tag))
+	tagEm := html.GetTagByName(tag, "em")
+	if tagEm == nil {
+		log.Fatalf("Unable to find psalm chorus")
+	}
+	fmt.Println(html.RenderNodeContent(tagEm))
 
+	content := html.FindAllParagraphsWithText(tag)
+	for _, t := range content {
+		fmt.Println(t)
+	}
 }
