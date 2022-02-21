@@ -39,6 +39,7 @@ func main() {
 
 	content := html.FindAllParagraphsWithText(tag)
 	for _, t := range content {
-		fmt.Println(t)
+		fmt.Println()
+		fmt.Println(html.StripHtmlTags(t))
 	}
 }
