@@ -1,0 +1,75 @@
+/*
+Package html helps search through HTML document and find elements by ID, tags by name, display nodes, etc.
+*/
+package html
+
+import (
+	"bytes"
+	"golang.org/x/net/html"
+	"io"
+)
+
+// Parse returns html node that could be used in functions from this package or error if issues when parsing
+func Parse(reader io.Reader) (*html.Node, error) {
+	doc, err := html.Parse(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return doc, nil
+}
+
+// GetElementById search for id in given html fragment and returns html node when element was found
+func GetElementById(n *html.Node, id string) *html.Node {
+	return traverse(n, id)
+}
+
+// RenderNode renders given html fragment and returns string
+func RenderNode(n *html.Node) string {
+	var buf bytes.Buffer
+	w := io.Writer(&buf)
+
+	err := html.Render(w, n)
+	if err != nil {
+		return ""
+	}
+
+	return buf.String()
+}
+
+func getAttribute(n *html.Node, key string) (string, bool) {
+	for _, attr := range n.Attr {
+		if attr.Key == key {
+			return attr.Val, true
+		}
+	}
+
+	return "", false
+}
+
+func checkId(n *html.Node, id string) bool {
+	if n.Type == html.ElementNode {
+		s, ok := getAttribute(n, "id")
+
+		if ok && s == id {
+			return true
+		}
+	}
+
+	return false
+}
+
+func traverse(n *html.Node, id string) *html.Node {
+	if checkId(n, id) {
+		return n
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		res := traverse(c, id)
+		if res != nil {
+			return res
+		}
+	}
+
+	return nil
+}
