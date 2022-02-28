@@ -16,11 +16,9 @@ const (
 	maxContentLengthToTitle = 30
 )
 
-func CreateDocument(content string, prefix string) string {
-	srv := NewDocumentService()
-
+func CreateDocument(service *docs.Service, content string, prefix string) string {
 	title := createDocumentTitle(content, prefix)
-	doc, err := srv.Documents.Create(&docs.Document{Title: title}).Do()
+	doc, err := service.Documents.Create(&docs.Document{Title: title}).Do()
 	if err != nil {
 		log.Fatalf("Unable to create document: %v", err)
 	}
@@ -34,7 +32,7 @@ func CreateDocument(content string, prefix string) string {
 	requests := make([]*docs.Request, 0)
 	requests = append(requests, &docs.Request{UpdateDocumentStyle: &styleRequest})
 	requests = append(requests, &docs.Request{InsertText: &ins1})
-	_, err = srv.Documents.BatchUpdate(doc.DocumentId, &docs.BatchUpdateDocumentRequest{Requests: requests}).Do()
+	_, err = service.Documents.BatchUpdate(doc.DocumentId, &docs.BatchUpdateDocumentRequest{Requests: requests}).Do()
 	if err != nil {
 		log.Fatalf("Update to update document stype: %v", err)
 	}

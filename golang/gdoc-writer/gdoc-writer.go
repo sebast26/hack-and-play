@@ -36,7 +36,8 @@ func createDocumentFromStdin(context *cli.Context) error {
 	}
 
 	prefix := context.String("prefix")
-	docLocation := google.CreateDocument(string(b), prefix)
+	service := google.NewDocumentService()
+	docLocation := google.CreateDocument(service, string(b), prefix)
 	log.Printf("Successfully created Google Document under: %s", docLocation)
 	return nil
 }
