@@ -51,3 +51,14 @@ When you want to have "default" value for you command when using ENTRYPOINT, you
 When you do not specify the `command` in docker run then the command executed at startup will be ENTRYPOINT + CMD (in our case `sleep 5`).
 
 When you specify the `command` part in docker run then the `CMD` from dockerfile will be replaced by `command` and the ENTRYPOINT + command will be executed at startup.
+
+## The use of `ENV`
+
+You can quickly parametrise running docker command with `ENV` instruction. In `Dockerfile.env` file we have an example on how to override default value printed to the user.
+
+You can use `ENV` instruction and then execute docker run with:
+
+```bash
+docker run -e"NAME=Ania" sebast26/env
+```
+
