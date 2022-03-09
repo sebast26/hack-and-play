@@ -1,0 +1,12 @@
+# if hostpath-pvc will bound to PV, then this will not work, since only one PVC can occupy single PV
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hostpath-pvc2
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Mi
+  storageClassName: slow

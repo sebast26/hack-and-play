@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pv-pod-test
+spec:
+  containers:
+  - args:
+    - sh
+    - -c
+    - echo 'seba' | tee /data/data.txt
+    image: busybox
+    name: pv-pod-test
+    volumeMounts:
+    - name: data
+      mountPath: /data
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: hostpath-pvc
