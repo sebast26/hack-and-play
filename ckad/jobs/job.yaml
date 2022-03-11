@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: my-job2
+spec:
+  template:
+    spec:
+      containers:
+      - command:
+        - expr
+        - "5"
+        - +
+        - "3"
+        image: busybox
+        name: my-job2
+      restartPolicy: Never
+  completions: 3
