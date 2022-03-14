@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: green-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bluegreen-test
+      color: green
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: bluegreen-test
+        color: green
+    spec:
+      containers:
+      - image: linuxacademycontent/ckad-nginx:green
+        name: ckad-nginx
+        ports:
+        - containerPort: 80
