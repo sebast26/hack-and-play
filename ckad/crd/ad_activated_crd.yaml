@@ -1,0 +1,69 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: adactivations.events.domain.com 
+spec:
+  group: events.domain.com 
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                adId:
+                  type: string
+                  description: "The ID of the ad"
+                  pattern: "^urn:olx:(pl|ua|ro|bg|uz|kz|pt):my_ads:ad:[0-9]+$"
+                activationTime:
+                  type: string
+                  description: "Date and time of ad activation"
+                  format: datetime
+                partnerCode:
+                  type: string
+                  description: "The id of the partner code for this ad"
+                  pattern: "^urn:olx:(pl|ua|ro|bg|uz|kz|pt):b2c:partner_code:.+$"
+                  maxLength: 54
+                requestContext:
+                  type: object
+                  description: "Data that was collected from the user when the event was generated"
+                  properties:
+                    ip:
+                      type: string
+                      description: "IP address that the user is connecting from"
+                    ip6:
+                      type: string
+                      description: "IPv6 address that the user is connecting from"
+                    port:
+                      type: integer
+                      description: "Port number that the user is connecting from"
+                  anyOf:
+                  - properties:
+                      ip:
+                        format: ipv4
+                      ip6:
+                        format: ipv6
+                    
+      additionalPrinterColumns:
+      - name: AdID
+        type: string
+        description: The ID of the ad
+        jsonPath: .spec.adId
+      - name: ActivationTime
+        type: string
+        description: Date and time of ad activation
+        jsonPath: .spec.activationTime
+      - name: IP
+        type: string
+        jsonPath: .spec.requestContext.ip
+  scope: Namespaced
+  names:
+    plural: adactivations
+    singular: adactivation
+    kind: AdActivation
+    shortNames:
+    - adact

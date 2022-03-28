@@ -1,0 +1,11 @@
+apiVersion: events.domain.com/v1
+kind: AdActivation
+metadata:
+  name: my-ad-activation2
+spec:
+  adId: "urn:olx:pl:my_ads:ad:76876123" 
+  activationTime: "2020-11-16T11:14:48+01:00"
+  partnerCode: "urn:olx:pl:b2c:partner_code:partner_a"
+  requestContext:
+    ip6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+    port: 5333
