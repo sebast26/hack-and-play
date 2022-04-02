@@ -1,0 +1,10 @@
+apiVersion: v1
+data:
+  cm-file.txt: You can put anything inside this file. Config map will use file name
+    as a key and file content as a value.
+  key1: value1
+  key2: value2
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: ckad-cm

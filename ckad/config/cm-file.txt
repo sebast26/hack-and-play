@@ -1,0 +1,1 @@
+You can put anything inside this file. Config map will use file name as a key and file content as a value.
