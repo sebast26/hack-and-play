@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  creationTimestamp: null
+  name: pi
+spec:
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+      name: pi
+    spec:
+      completions: 10
+      parallelism: 3
+      template:
+        metadata:
+          creationTimestamp: null
+        spec:
+          containers:
+          - command:
+            - perl
+            - -Mbignum=bpi
+            - -wle
+            - print bpi(2000)
+            image: perl
+            name: pi
+            resources: {}
+          restartPolicy: OnFailure
+  schedule: '*/2 * * * *'
+status: {}
