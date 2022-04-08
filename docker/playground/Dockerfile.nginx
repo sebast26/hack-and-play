@@ -1,0 +1,12 @@
+ARG NGINX_VERSION
+FROM nginx:${NGINX_VERSION}
+
+ENV DOCKER_TEST="This is only for Dockerfile test"
+
+ARG DOCKER_TEST2="This will not be visible in container"
+
+RUN mkdir -p /opt/nginx
+
+WORKDIR /opt/nginx
+
+ADD README.md .
