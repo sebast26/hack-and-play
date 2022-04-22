@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: multi2
+  name: multi2
+spec:
+  initContainers:
+  - name: busybox
+    image: busybox
+    command:
+    - sh
+    - -c
+    - wget -O /work-dir/index.html http://neverssl.com/online
+    volumeMounts:
+    - name: data
+      mountPath: /work-dir
+  containers:
+  - image: nginx
+    name: nginx
+    ports:
+    - containerPort: 80
+    resources: {}
+    volumeMounts:
+    - name: data
+      mountPath: /usr/share/nginx/html
+  dnsPolicy: ClusterFirst
+  restartPolicy: Never
+  volumes:
+  - name: data
+    emptyDir: {}
+status: {}

@@ -1,0 +1,8 @@
+apiVersion: "stable.example.com/v1"
+kind: Operator
+metadata:
+  name: myop
+spec:
+  email: my@example.com
+  name: MyName
+  age: 83
