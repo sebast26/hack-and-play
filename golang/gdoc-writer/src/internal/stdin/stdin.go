@@ -2,12 +2,12 @@ package stdin
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"os"
 )
 
+// ReadStdin reads from stdin into byte array
 func ReadStdin() ([]byte, error) {
 	reader := bufio.NewReader(os.Stdin)
 	buf := make([]byte, 0, 4*1024)
@@ -24,13 +24,13 @@ func ReadStdin() ([]byte, error) {
 			if err == io.EOF {
 				break
 			}
-			return nil, errors.New(fmt.Sprintf("Unexpected error when reading from stdio: %v", err))
+			return nil, fmt.Errorf("unexpected error when reading from stdio: %v", err)
 		}
 
 		output = append(output, buf...)
 
 		if err != nil && err != io.EOF {
-			return nil, errors.New(fmt.Sprintf("Unexpected error when reading from stdio: %v", err))
+			return nil, fmt.Errorf("unexpected error when reading from stdio: %v", err)
 		}
 	}
 

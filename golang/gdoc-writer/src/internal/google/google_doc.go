@@ -2,20 +2,22 @@ package google
 
 import (
 	"fmt"
-	"google.golang.org/api/docs/v1"
 	"log"
 	"strings"
 	"time"
+
+	"google.golang.org/api/docs/v1"
 )
 
 const (
 	// documentLocationTemplate is a template used by Google Docs to access document by ID from the browser
 	documentLocationTemplate = "https://docs.google.com/document/d/%s/edit"
 
-	// maxContentLengthToTitle specifies maximum number of characters from context that could be included inside document title
+	// maxContentLengthToTitle specifies maximum number of characters that could be included inside document title
 	maxContentLengthToTitle = 30
 )
 
+// CreateDocument creates Google Document with context and prefix
 func CreateDocument(service *docs.Service, content string, prefix string) string {
 	title := createDocumentTitle(content, prefix)
 	doc, err := service.Documents.Create(&docs.Document{Title: title}).Do()
