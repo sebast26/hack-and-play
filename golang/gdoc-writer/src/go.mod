@@ -1,4 +1,4 @@
-module gdoc-writer
+module sgorecki.me/gdoc-writer/src
 
 go 1.17
 

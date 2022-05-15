@@ -1,12 +1,12 @@
 package main
 
 import (
-	google2 "gdoc-writer/src/internal/google"
-	"gdoc-writer/src/internal/stdin"
 	"log"
 	"os"
 
 	"github.com/urfave/cli/v2"
+	"sgorecki.me/gdoc-writer/src/internal/google"
+	"sgorecki.me/gdoc-writer/src/internal/stdin"
 )
 
 func main() {
@@ -37,8 +37,8 @@ func createDocumentFromStdin(context *cli.Context) error {
 	}
 
 	prefix := context.String("prefix")
-	service := google2.NewDocumentService()
-	docLocation := google2.CreateDocument(service, string(b), prefix)
+	service := google.NewDocumentService()
+	docLocation := google.CreateDocument(service, string(b), prefix)
 	log.Printf("Successfully created Google Document under: %s", docLocation)
 	return nil
 }

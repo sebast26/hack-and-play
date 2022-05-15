@@ -1,4 +1,4 @@
-.PHONY: lint test test-coverage mock modules all
+.PHONY: lint test test-coverage mock modules build all
 
 lint:
 	cd src && golangci-lint --timeout 3m --config ../.golangci.yml run --exclude-use-default=false ./...
@@ -17,7 +17,11 @@ mock:
 modules:
 	cd src && go mod download
 
+build:
+	cd src && go build -o gdoc-writer
+
 all:
 	make mock
 	make lint
 	make test
+	make build
