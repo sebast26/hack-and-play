@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -8,20 +9,19 @@ import (
 	"net/url"
 	"os"
 	"strings"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 const (
 	baseAuthorizationURL   = "https://accounts.google.com/o/oauth2/auth"
-	accessTokenExchangeURL = "https://accounts.google.com/o/oauth2/token"
+	accessTokenExchangeURL = "https://oauth2.googleapis.com/token"
 	redirectURI            = "/auth2callback"
+	taskAPIURL             = "https://www.googleapis.com/tasks/v1/lists/@default/tasks"
 )
 
 type tokenResp struct {
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
-	ExpiresIn    string `json:"expires_in"`
+	ExpiresIn    int    `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
 }
 
@@ -52,43 +52,56 @@ func step2ExchangeCodeToToken(writer http.ResponseWriter, request *http.Request)
 	params := buildExchangeCodeParams(code)
 	tokenRequest, err := http.NewRequest(http.MethodPost, accessTokenExchangeURL, strings.NewReader(params.Encode()))
 	if err != nil {
-		log.Fatalf("%w: unable to build token request")
+		log.Fatalf("%v: unable to build token request", err)
 	}
+
+	tokenRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	client := &http.Client{}
 	tokenResponse, err := client.Do(tokenRequest)
 	if err != nil {
-		log.Fatalf("%w: exchange code for token request failed")
+		log.Fatalf("%v: exchange code for token request failed", err)
 	}
 	defer func() {
 		_ = tokenResponse.Body.Close()
 	}()
 
-	//var tokenResp tokenResp
-	//err = json.NewDecoder(tokenResponse.Body).Decode(&tokenResp)
-	//if err != nil {
-	//	log.Fatalf("%w: error unmarshaling token response")
-	//}
-
-	//log.Printf("Access token: %s", tokenResp.AccessToken)
-
-	bytes, err := ioutil.ReadAll(tokenResponse.Body)
+	var tokenResp tokenResp
+	err = json.NewDecoder(tokenResponse.Body).Decode(&tokenResp)
 	if err != nil {
-		return
+		log.Fatalf("%v: error unmarshaling token response", err)
 	}
 
-	//  00000000  7b 0a 20 20 22 65 72 72  6f 72 22 3a 20 7b 0a 20  |{.  "error": {. |
-	// 00000010  20 20 20 22 63 6f 64 65  22 3a 20 34 30 30 2c 0a  |   "code": 400,.|
-	// 00000020  20 20 20 20 22 6d 65 73  73 61 67 65 22 3a 20 22  |    "message": "|
-	// 00000030  49 6e 76 61 6c 69 64 20  4a 53 4f 4e 20 70 61 79  |Invalid JSON pay|
-	// 00000040  6c 6f 61 64 20 72 65 63  65 69 76 65 64 2e 20 55  |load received. U|
-	// 00000050  6e 65 78 70 65 63 74 65  64 20 74 6f 6b 65 6e 2e  |nexpected token.|
-	// 00000060  5c 6e 63 6c 69 65 6e 74  5f 69 64 3d 32 38 36 36  |\nclient_id=2866|
-	// 00000070  39 31 31 36 30 39 5c 6e  5e 22 2c 0a 20 20 20 20  |911609\n^",.    |
-	// 00000080  22 73 74 61 74 75 73 22  3a 20 22 49 4e 56 41 4c  |"status": "INVAL|
-	// 00000090  49 44 5f 41 52 47 55 4d  45 4e 54 22 0a 20 20 7d  |ID_ARGUMENT".  }|
-	// 000000a0  0a 7d 0a                                          |.}.|
-	spew.Dump(bytes)
+	log.Printf("Access token: %s", tokenResp.AccessToken)
+
+	tasks := callTaskAPI(tokenResp.AccessToken)
+
+	fmt.Fprintf(writer, tasks)
+}
+
+func callTaskAPI(token string) string {
+	request, err := http.NewRequest(http.MethodGet, taskAPIURL, nil)
+	if err != nil {
+		log.Fatalf("%v: cannot create Task API request")
+	}
+
+	request.Header.Set("Authorization", "Bearer "+token)
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		log.Fatalf("%v: error when calling Task API")
+	}
+	defer func() {
+		_ = response.Body.Close()
+	}()
+
+	b, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatalf("%v: error reading response from Task API")
+	}
+
+	return string(b)
 }
 
 func buildExchangeCodeParams(code string) url.Values {
