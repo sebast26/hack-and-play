@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tracks table</title>
+</head>
+<body>
+    <table border="1">
+        <thead>
+            <tr>
+                <td><a href="/tracks{{.Sorting}}sort=title">Title</a></td>
+                <td><a href="/tracks{{.Sorting}}sort=artist">Artist</a></td>
+                <td><a href="/tracks{{.Sorting}}sort=album">Album</a></td>
+                <td><a href="/tracks{{.Sorting}}sort=year">Year</a></td>
+                <td><a href="/tracks{{.Sorting}}sort=length">Length</a></td>
+            </tr>
+        </thead>
+        <tbody>
+        {{range .Tracks}}
+            <tr>
+                <td>{{.Title}}</td>
+                <td>{{.Artist}}</td>
+                <td>{{.Album}}</td>
+                <td>{{.Year}}</td>
+                <td>{{.Length}}</td>
+            </tr>
+        {{end}}
+        </tbody>
+    </table>
+</body>
+</html>

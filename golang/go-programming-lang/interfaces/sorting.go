@@ -2,8 +2,13 @@ package interfaces
 
 import (
 	"fmt"
+	"html/template"
+	"io"
+	"log"
+	"net/http"
 	"os"
 	"sort"
+	"strings"
 	"text/tabwriter"
 	"time"
 )
@@ -80,4 +85,44 @@ func RunSorting() {
 		return false
 	}})
 	printTracks(tracks)
+}
+
+type sortedTracks struct {
+	Tracks  []*Track
+	sorting []string
+}
+
+func printTracksTable(w io.Writer, st sortedTracks) {
+	tmpl := template.Must(template.ParseFiles("interfaces/tracks_table.html"))
+	err := tmpl.Execute(w, st)
+	if err != nil {
+		log.Fatalf("%v: error preparing HTML table", err)
+	}
+}
+
+func RunMultiTierTableSort() {
+	http.HandleFunc("/tracks", multiTierSortTracks)
+	http.ListenAndServe(":8099", nil)
+}
+
+func multiTierSortTracks(writer http.ResponseWriter, request *http.Request) {
+	s := request.URL.Query()["sort"]
+	st := sortedTracks{
+		Tracks:  tracks,
+		sorting: s,
+	}
+
+	multiSort := multiTierSort{t: st.Tracks, keys: st.sorting}
+	sort.Sort(multiSort)
+
+	printTracksTable(writer, st)
+}
+
+func (st sortedTracks) Sorting() string {
+	var sb strings.Builder
+	sb.WriteString("?")
+	for _, s := range st.sorting {
+		sb.WriteString("sort=" + s + "&")
+	}
+	return sb.String()
 }
