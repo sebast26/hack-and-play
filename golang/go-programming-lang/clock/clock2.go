@@ -1,4 +1,4 @@
-package goroutines
+package main
 
 import (
 	"flag"
@@ -20,8 +20,10 @@ func handleConn(c net.Conn) {
 	}
 }
 
-func Clock() {
+func main() {
 	port := flag.Int("port", 8000, "-port 8000")
+	flag.Parse()
+
 	listener, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", *port))
 	if err != nil {
 		log.Fatal(err)
