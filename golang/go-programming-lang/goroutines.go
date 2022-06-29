@@ -10,5 +10,8 @@ func main() {
 	//goroutines.Pipeline3()
 	//goroutines.Countdown1()
 	//goroutines.Countdown2()
-	goroutines.Countdown3()
+	//goroutines.Countdown3()
+	//goroutines.Du1()
+	//goroutines.Du2()
+	goroutines.Du3()
 }
