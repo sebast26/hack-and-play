@@ -34,13 +34,13 @@ func (s Store) Save(user onlyuser.User) error {
 		return nil // nothing to do
 	}
 
-	var dbEvents []dbEvent
+	var dbEventItems []dbEventItem
 	for _, event := range changes {
 		serializedEvent, err := json.Marshal(event)
 		if err != nil {
 			return err
 		}
-		dbEvents = append(dbEvents, dbEvent{
+		dbEventItems = append(dbEventItems, dbEventItem{
 			key: key{
 				ID:      fmt.Sprintf("user-%s", user.ID),
 				Version: 0, // TODO: how to check version?
@@ -49,11 +49,13 @@ func (s Store) Save(user onlyuser.User) error {
 			Data: string(serializedEvent),
 		})
 
+		// FIX: for in for???
+
 		// TODO: should be included in function parameters
 		ctx := context.Background()
 
-		// TODO: db.AppendEvents(streamName, dbEvents);
-		for _, e := range dbEvents {
+		// TODO: db.AppendEvents(streamName, dbEventItems);
+		for _, e := range dbEventItems {
 			item, err := attributevalue.MarshalMap(e)
 			if err != nil {
 				return err
@@ -95,10 +97,12 @@ func IsConditionalCheckFailed(err error) bool {
 }
 
 func (s Store) Load(userID string) onlyuser.User {
-	//streamName := fmt.Sprintf("user-%s", userID)
+	streamName := fmt.Sprintf("user-%s", userID)
 
-	// TODO: db.ReadEvents(streamName);
-	var dbEvents []dbEvent
+	dbEvents, err := s.readEvents(streamName)
+	if err != nil {
+		return onlyuser.User{}
+	}
 	if len(dbEvents) == 0 {
 		return onlyuser.User{} // TODO: is it properly handled? how to handle it?
 	}
@@ -110,13 +114,46 @@ func (s Store) Load(userID string) onlyuser.User {
 	return user
 }
 
+func (s Store) readEvents(streamName string) ([]dbEventItem, error) {
+	// TODO: should be included in function parameters
+	ctx := context.Background()
+
+	out, err := s.db.Query(ctx, &dynamodb.QueryInput{
+		TableName:                 aws.String(s.table),
+		ExpressionAttributeNames:  nil,
+		ExpressionAttributeValues: nil,
+		KeyConditionExpression:    nil,
+
+		ConsistentRead: aws.Bool(true),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(out.Items) == 0 {
+		return nil, nil // TODO: should it be here or in invoking function?
+	}
+
+	var events []dbEventItem
+	for _, rawItem := range out.Items {
+		var item dbEventItem
+		err = attributevalue.UnmarshalMap(rawItem, &item)
+		if err != nil {
+			return nil, err
+		}
+		events = append(events, item)
+	}
+
+	return events, nil
+}
+
 type key struct {
 	ID      string `dynamodbav:"id"`
 	Version int    `dynamodbav:"version"`
 }
 
-// dbEvent is dynamoDB struct for event.
-type dbEvent struct {
+// dbEventItem is dynamoDB struct for event.
+type dbEventItem struct {
 	key
 
 	Type string `dynamodbav:"event_type"`
