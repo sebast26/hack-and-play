@@ -6,11 +6,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"sgorecki.me/golang/event-store/src/internal/onlyuser"
 )
 
@@ -117,6 +116,8 @@ func (s Store) Load(userID string) onlyuser.User {
 func (s Store) readEvents(streamName string) ([]dbEventItem, error) {
 	// TODO: should be included in function parameters
 	ctx := context.Background()
+
+	// TODO: use streamName ;-)
 
 	out, err := s.db.Query(ctx, &dynamodb.QueryInput{
 		TableName:                 aws.String(s.table),
