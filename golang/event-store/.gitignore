@@ -1,0 +1,6 @@
+node_modules/
+.bin
+.serverless
+.idea
+cover.out
+coverage.xml

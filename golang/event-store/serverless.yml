@@ -1,0 +1,45 @@
+service: sgorecki-event-store
+
+frameworkVersion: ">=3.15.2"
+configValidationMode: error
+
+plugins:
+  - serverless-go-plugin
+
+provider:
+  name: aws
+  runtime: provided.al2
+  architecture: arm64
+  region: eu-west-1
+  stage: ${opt:stage, 'dev'}
+  logRetentionInDays: 90
+  versionFunctions: false
+  environment:
+    APP_ENV: ${self:provider.stage}
+
+custom:
+  go:
+    baseDir: ./src
+    cmd: GOARCH=arm64 GOOS=linux go build -trimpath -tags lambda.norpc -ldflags="-s -w"
+    supportedRuntimes: [ "go1.x", "provided.al2" ]
+    buildProvidedRuntimeAsBootstrap: true
+  tablesDeletionPolicy:
+    production: Retain
+    staging: Retain
+    default: Delete
+  tablesBackup:
+    production: true
+    staging: true
+    default: false
+
+package:
+  excludeDevDependencies: false
+
+functions:
+  crud-subscriber:
+    handler: ./functions/hello
+    timeout: 10
+    memorySize: 256
+
+resources:
+  - ${file(./serverless.tables.yml)}

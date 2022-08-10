@@ -1,0 +1,9 @@
+{
+  "name": "sgorecki-event-store",
+  "private": true,
+  "devDependencies": {
+    "serverless": "^3.15.2",
+    "serverless-go-plugin": "^2.1.0",
+    "serverless-iam-roles-per-function": "^3.2.0"
+  }
+}
