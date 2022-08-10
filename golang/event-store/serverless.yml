@@ -16,6 +16,7 @@ provider:
   versionFunctions: false
   environment:
     APP_ENV: ${self:provider.stage}
+    TABLE_EVENT_STORE: ${self:service}-event-store-${self:provider.stage}
 
 custom:
   go:

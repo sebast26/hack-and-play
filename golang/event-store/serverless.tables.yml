@@ -1,32 +1,19 @@
 Resources:
-#   OffersTable:
-#     Type: AWS::DynamoDB::Table
-#     DeletionPolicy: ${self:custom.tablesDeletionPolicy.${self:provider.stage}, self:custom.tablesDeletionPolicy.default}
-#     Properties:
-#       TableName: ${self:provider.environment.TABLE_OFFERS}
-#       AttributeDefinitions:
-#         - AttributeName: pk
-#           AttributeType: S
-#         - AttributeName: sk
-#           AttributeType: S
-#         - AttributeName: pk_gsi_by_country
-#           AttributeType: S
-#         - AttributeName: sk_gsi_by_country
-#           AttributeType: S
-#       KeySchema:
-#         - AttributeName: pk
-#           KeyType: HASH
-#         - AttributeName: sk
-#           KeyType: RANGE
-#       GlobalSecondaryIndexes:
-#         - IndexName: ByCountry
-#           KeySchema:
-#             - AttributeName: pk_gsi_by_country #Country
-#               KeyType: HASH
-#             - AttributeName: sk_gsi_by_country #AddedAt#AdID
-#               KeyType: RANGE
-#           Projection:
-#             ProjectionType: ALL
-#       BillingMode: PAY_PER_REQUEST
-#       PointInTimeRecoverySpecification:
-#         PointInTimeRecoveryEnabled: ${self:custom.tablesBackup.${self:provider.stage}, self:custom.tablesBackup.default}
+  EventStoreTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: ${self:custom.tablesDeletionPolicy.${self:provider.stage}, self:custom.tablesDeletionPolicy.default}
+    Properties:
+      TableName: ${self:provider.environment.TABLE_EVENT_STORE}
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: version
+          AttributeType: N
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+        - AttributeName: version
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: ${self:custom.tablesBackup.${self:provider.stage}, self:custom.tablesBackup.default}
