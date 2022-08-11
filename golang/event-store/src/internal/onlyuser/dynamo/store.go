@@ -123,9 +123,11 @@ func (s Store) Load(ctx context.Context, userID string) onlyuser.User {
 
 func (s Store) readEvents(ctx context.Context, streamName string) ([]dbEventItem, error) {
 	out, err := s.db.Query(ctx, &dynamodb.QueryInput{
-		TableName:                aws.String(s.table),
-		KeyConditionExpression:   aws.String("id = :hashKey"),
-		ExpressionAttributeNames: nil,
+		TableName:              aws.String(s.table),
+		KeyConditionExpression: aws.String("#id = :hashKey"),
+		ExpressionAttributeNames: map[string]string{
+			"#id": "id",
+		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":hashKey": &types.AttributeValueMemberS{Value: streamName},
 		},

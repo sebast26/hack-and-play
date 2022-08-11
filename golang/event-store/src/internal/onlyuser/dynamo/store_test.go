@@ -13,7 +13,11 @@ import (
 func TestEventStore(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("save & get - success", func(t *testing.T) {
+	t.Run("first event test: save & get - UserCreated, etc", func(t *testing.T) {
+
+	})
+
+	t.Run("multiple events - success", func(t *testing.T) {
 		db, table := dynamo.SetupTable(t, "EventStore")
 		store := onlyuserdynamo.NewStore(db, table)
 
@@ -28,5 +32,9 @@ func TestEventStore(t *testing.T) {
 
 		actual := store.Load(ctx, "123456")
 		assert.Equal(t, "seba@example.com", actual.Email)
+	})
+
+	t.Run("test for 1MB return from Query", func(t *testing.T) {
+
 	})
 }
