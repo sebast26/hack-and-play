@@ -44,7 +44,7 @@ func (s Store) Save(ctx context.Context, user onlyuser.User) error {
 				ID:      fmt.Sprintf("user-%s", user.ID),
 				Version: 0, // TODO: how to check version?
 			},
-			Type: "TODO",
+			Type: "UserEmailChanged",
 			Data: string(serializedEvent),
 		})
 	}
@@ -101,21 +101,34 @@ func (s Store) Load(ctx context.Context, userID string) onlyuser.User {
 		return onlyuser.User{} // TODO: is it properly handled? how to handle it?
 	}
 
+	var events []interface{}
+	for _, dbEvent := range dbEvents {
+		if dbEvent.Type == "UserEmailChanged" {
+			var e onlyuser.UserEmailChanged
+			err := json.Unmarshal([]byte(dbEvent.Data), &e)
+			if err != nil {
+				// TODO!!
+				return onlyuser.User{}
+			}
+			events = append(events, e)
+		}
+	}
+
 	var user = onlyuser.User{}
-	for _, event := range dbEvents {
+	for _, event := range events {
 		user.When(event)
 	}
 	return user
 }
 
 func (s Store) readEvents(ctx context.Context, streamName string) ([]dbEventItem, error) {
-	// TODO: use streamName ;-)
-
 	out, err := s.db.Query(ctx, &dynamodb.QueryInput{
-		TableName:                 aws.String(s.table),
-		ExpressionAttributeNames:  nil,
-		ExpressionAttributeValues: nil,
-		KeyConditionExpression:    nil,
+		TableName:                aws.String(s.table),
+		KeyConditionExpression:   aws.String("id = :hashKey"),
+		ExpressionAttributeNames: nil,
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":hashKey": &types.AttributeValueMemberS{Value: streamName},
+		},
 
 		ConsistentRead: aws.Bool(true),
 	})

@@ -19,7 +19,6 @@ func TestEventStore(t *testing.T) {
 
 		user := onlyuser.User{
 			ID:    "123456",
-			Name:  "Sebastian",
 			Email: "sebastian@example.com",
 		}
 		user.ChangeEmail("seba@example.com")
@@ -28,8 +27,6 @@ func TestEventStore(t *testing.T) {
 		assert.NoError(t, err)
 
 		actual := store.Load(ctx, "123456")
-		assert.Equal(t, user.ID, actual.ID)
-		assert.Equal(t, user.Name, actual.Name)
 		assert.Equal(t, "seba@example.com", actual.Email)
 	})
 }
