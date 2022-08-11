@@ -22,11 +22,14 @@ func TestEventStore(t *testing.T) {
 			Name:  "Sebastian",
 			Email: "sebastian@example.com",
 		}
+		user.ChangeEmail("seba@example.com")
 
 		err := store.Save(ctx, user)
 		assert.NoError(t, err)
 
 		actual := store.Load(ctx, "123456")
-		assert.Equal(t, user, actual)
+		assert.Equal(t, user.ID, actual.ID)
+		assert.Equal(t, user.Name, actual.Name)
+		assert.Equal(t, "seba@example.com", actual.Email)
 	})
 }

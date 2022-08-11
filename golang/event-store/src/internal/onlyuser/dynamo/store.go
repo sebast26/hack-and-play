@@ -47,38 +47,36 @@ func (s Store) Save(ctx context.Context, user onlyuser.User) error {
 			Type: "TODO",
 			Data: string(serializedEvent),
 		})
+	}
 
-		// FIX: for in for???
+	// TODO: db.AppendEvents(streamName, dbEventItems);
+	for _, e := range dbEventItems {
+		item, err := attributevalue.MarshalMap(e)
+		if err != nil {
+			return err
+		}
 
-		// TODO: db.AppendEvents(streamName, dbEventItems);
-		for _, e := range dbEventItems {
-			item, err := attributevalue.MarshalMap(e)
-			if err != nil {
-				return err
-			}
+		out, err := s.db.PutItem(ctx, &dynamodb.PutItemInput{
+			ConditionExpression:       nil,
+			ExpressionAttributeNames:  nil,
+			ExpressionAttributeValues: nil,
+			Item:                      item,
+			TableName:                 aws.String(s.table),
+			ReturnValues:              "ALL_OLD",
+		})
 
-			out, err := s.db.PutItem(ctx, &dynamodb.PutItemInput{
-				ConditionExpression:       nil,
-				ExpressionAttributeNames:  nil,
-				ExpressionAttributeValues: nil,
-				Item:                      item,
-				TableName:                 aws.String(s.table),
-				ReturnValues:              "ALL_OLD",
-			})
+		if IsConditionalCheckFailed(err) {
+			// TODO: concurrent update
+			// should retry
+			return err
+		}
 
-			if IsConditionalCheckFailed(err) {
-				// TODO: concurrent update
-				// should retry
-				return err
-			}
+		if err != nil {
+			return err
+		}
 
-			if err != nil {
-				return err
-			}
+		if out.Attributes == nil { // successfully added
 
-			if out.Attributes == nil { // successfully added
-
-			}
 		}
 	}
 

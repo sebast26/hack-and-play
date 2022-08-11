@@ -10,13 +10,13 @@ type User struct {
 }
 
 // TODO: this should be generic! belongs to Entity class
-func (u User) Apply(event interface{}) {
+func (u *User) Apply(event interface{}) {
 	u.When(event)
 	u.Changes = append(u.Changes, event)
 }
 
 // TODO: this should be abstract method reimplemented in all subclasses!
-func (u User) When(event interface{}) {
+func (u *User) When(event interface{}) {
 	switch v := event.(type) {
 	case UserEmailChanged:
 		u.Email = v.Email
@@ -30,7 +30,7 @@ type UserEmailChanged struct {
 	Email  string
 }
 
-func (u User) ChangeEmail(email string) {
+func (u *User) ChangeEmail(email string) {
 	// this is important, to not mutate state here!!
 	newEmail := email
 
