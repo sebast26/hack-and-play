@@ -4,10 +4,9 @@ type User struct {
 	// TODO: this should be generic! belongs to Entity class
 	Changes []interface{}
 
-	ID      string
-	Name    string
-	Email   string
-	Address string
+	ID    string
+	Name  string
+	Email string
 }
 
 // TODO: this should be generic! belongs to Entity class

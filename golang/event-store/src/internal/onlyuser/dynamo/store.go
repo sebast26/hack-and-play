@@ -27,7 +27,7 @@ func NewStore(dynamoClient *dynamodb.Client, table string) *Store {
 	}
 }
 
-func (s Store) Save(user onlyuser.User) error {
+func (s Store) Save(ctx context.Context, user onlyuser.User) error {
 	changes := user.Changes
 	if len(changes) == 0 {
 		return nil // nothing to do
@@ -49,9 +49,6 @@ func (s Store) Save(user onlyuser.User) error {
 		})
 
 		// FIX: for in for???
-
-		// TODO: should be included in function parameters
-		ctx := context.Background()
 
 		// TODO: db.AppendEvents(streamName, dbEventItems);
 		for _, e := range dbEventItems {
@@ -95,10 +92,10 @@ func IsConditionalCheckFailed(err error) bool {
 	return errors.As(err, &conditionalCheckError)
 }
 
-func (s Store) Load(userID string) onlyuser.User {
+func (s Store) Load(ctx context.Context, userID string) onlyuser.User {
 	streamName := fmt.Sprintf("user-%s", userID)
 
-	dbEvents, err := s.readEvents(streamName)
+	dbEvents, err := s.readEvents(ctx, streamName)
 	if err != nil {
 		return onlyuser.User{}
 	}
@@ -113,10 +110,7 @@ func (s Store) Load(userID string) onlyuser.User {
 	return user
 }
 
-func (s Store) readEvents(streamName string) ([]dbEventItem, error) {
-	// TODO: should be included in function parameters
-	ctx := context.Background()
-
+func (s Store) readEvents(ctx context.Context, streamName string) ([]dbEventItem, error) {
 	// TODO: use streamName ;-)
 
 	out, err := s.db.Query(ctx, &dynamodb.QueryInput{
