@@ -13,14 +13,32 @@ import (
 func TestEventStore(t *testing.T) {
 	ctx := context.Background()
 
-	t.Run("first event test: save & get - UserCreated, etc", func(t *testing.T) {
+	t.Run("success - create user", func(t *testing.T) {
+		// given
+		db, table := dynamo.SetupTable(t, "EventStore")
+		store := onlyuserdynamo.NewStore(db, table)
+		user := onlyuser.NewUser("name", "email")
 
+		// when
+		err := store.Save(ctx, user)
+
+		// then
+		assert.NoError(t, err)
+
+		// when
+		actual := store.Load(ctx, user.ID)
+
+		// then
+		assert.Equal(t, user.ID, actual.ID)
+		assert.Equal(t, user.Name, actual.Name)
+		assert.Equal(t, user.Email, actual.Email)
 	})
 
 	t.Run("multiple events - success", func(t *testing.T) {
 		db, table := dynamo.SetupTable(t, "EventStore")
 		store := onlyuserdynamo.NewStore(db, table)
 
+		// TODO: this shoudl be NewUser instead!
 		user := onlyuser.User{
 			ID:    "123456",
 			Email: "sebastian@example.com",

@@ -1,5 +1,7 @@
 package onlyuser
 
+import "github.com/google/uuid"
+
 type User struct {
 	// TODO: this should be generic! belongs to Entity class
 	Changes []interface{}
@@ -11,7 +13,9 @@ type User struct {
 
 func NewUser(name, email string) User {
 	user := User{}
+	id := uuid.New()
 	user.Apply(UserCreated{
+		ID:    id.String(),
 		Name:  name,
 		Email: email,
 	})
@@ -19,6 +23,7 @@ func NewUser(name, email string) User {
 }
 
 type UserCreated struct {
+	ID    string
 	Name  string
 	Email string
 }
@@ -48,6 +53,7 @@ func (u *User) Apply(event interface{}) {
 func (u *User) When(event interface{}) {
 	switch v := event.(type) {
 	case UserCreated:
+		u.ID = v.ID
 		u.Name = v.Name
 		u.Email = v.Email
 	case UserEmailChanged:

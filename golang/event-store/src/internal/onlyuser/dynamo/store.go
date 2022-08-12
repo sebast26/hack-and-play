@@ -33,24 +33,40 @@ func (s Store) Save(ctx context.Context, user onlyuser.User) error {
 		return nil // nothing to do
 	}
 
-	var dbEventItems []dbEventItem
-	for _, event := range changes {
-		serializedEvent, err := json.Marshal(event)
+	var items []dbEventItem
+	for _, change := range changes {
+		serializedChange, err := json.Marshal(change)
 		if err != nil {
 			return err
 		}
-		dbEventItems = append(dbEventItems, dbEventItem{
-			key: key{
-				ID:      fmt.Sprintf("user-%s", user.ID),
-				Version: 0, // TODO: how to check version?
-			},
-			Type: "UserEmailChanged",
-			Data: string(serializedEvent),
-		})
+
+		var item dbEventItem
+		switch change.(type) {
+		case onlyuser.UserCreated:
+			item = dbEventItem{
+				key: key{
+					ID:      fmt.Sprintf("user-%s", user.ID),
+					Version: 0, // TODO
+				},
+				Type: "UserCreated",
+				Data: string(serializedChange),
+			}
+		case onlyuser.UserEmailChanged:
+			item = dbEventItem{
+				key: key{
+					ID:      fmt.Sprintf("user-%s", user.ID),
+					Version: 0, // TODO
+				},
+				Type: "UserEmailChanged",
+				Data: string(serializedChange),
+			}
+		}
+
+		items = append(items, item)
 	}
 
 	// TODO: db.AppendEvents(streamName, dbEventItems);
-	for _, e := range dbEventItems {
+	for _, e := range items {
 		item, err := attributevalue.MarshalMap(e)
 		if err != nil {
 			return err
@@ -103,6 +119,15 @@ func (s Store) Load(ctx context.Context, userID string) onlyuser.User {
 
 	var events []interface{}
 	for _, dbEvent := range dbEvents {
+		if dbEvent.Type == "UserCreated" {
+			var e onlyuser.UserCreated
+			err := json.Unmarshal([]byte(dbEvent.Data), &e)
+			if err != nil {
+				// TODO
+				return onlyuser.User{}
+			}
+			events = append(events, e)
+		}
 		if dbEvent.Type == "UserEmailChanged" {
 			var e onlyuser.UserEmailChanged
 			err := json.Unmarshal([]byte(dbEvent.Data), &e)

@@ -11,6 +11,7 @@ func TestUser(t *testing.T) {
 	t.Run("should create a user", func(t *testing.T) {
 		user := onlyuser.NewUser("name", "email")
 
+		assert.NotEmpty(t, user.ID)
 		assert.Equal(t, user.Name, "name")
 		assert.Equal(t, user.Email, "email")
 	})
