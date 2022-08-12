@@ -5,6 +5,7 @@ import "github.com/google/uuid"
 type User struct {
 	// TODO: this should be generic! belongs to Entity class
 	Changes []interface{}
+	Version int
 
 	ID    string
 	Name  string
@@ -61,4 +62,5 @@ func (u *User) When(event interface{}) {
 	default:
 		panic("unknown event type!")
 	}
+	u.Version++
 }

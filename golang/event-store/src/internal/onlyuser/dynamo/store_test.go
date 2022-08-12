@@ -24,6 +24,7 @@ func TestEventStore(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
+		assert.Equal(t, 1, user.Version) // internals: should it be here?
 
 		// when
 		actual := store.Load(ctx, user.ID)
@@ -32,24 +33,46 @@ func TestEventStore(t *testing.T) {
 		assert.Equal(t, user.ID, actual.ID)
 		assert.Equal(t, user.Name, actual.Name)
 		assert.Equal(t, user.Email, actual.Email)
+		assert.Equal(t, 1, actual.Version) // internals: should it be here?
 	})
 
-	t.Run("multiple events - success", func(t *testing.T) {
+	t.Run("success - user changed email", func(t *testing.T) {
+		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
 		store := onlyuserdynamo.NewStore(db, table)
+		user := onlyuser.NewUser("name", "email")
 
-		// TODO: this shoudl be NewUser instead!
-		user := onlyuser.User{
-			ID:    "123456",
-			Email: "sebastian@example.com",
-		}
-		user.ChangeEmail("seba@example.com")
-
+		// when
+		user.ChangeEmail("otheremail")
 		err := store.Save(ctx, user)
-		assert.NoError(t, err)
 
-		actual := store.Load(ctx, "123456")
-		assert.Equal(t, "seba@example.com", actual.Email)
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, 2, user.Version) // internals: should it be here?
+		actual := store.Load(ctx, user.ID)
+		assert.Equal(t, "name", actual.Name)
+		assert.Equal(t, "otheremail", actual.Email)
+		assert.Equal(t, 2, actual.Version) // internals: should it be here?
+	})
+
+	t.Run("success - user changed email, order of events matter", func(t *testing.T) {
+		// given
+		db, table := dynamo.SetupTable(t, "EventStore")
+		store := onlyuserdynamo.NewStore(db, table)
+		user := onlyuser.NewUser("name", "email")
+
+		// when
+		user.ChangeEmail("otheremail")
+		user.ChangeEmail("finalemail")
+		err := store.Save(ctx, user)
+
+		// then
+		assert.NoError(t, err)
+		assert.Equal(t, 3, user.Version)
+		actual := store.Load(ctx, user.ID)
+		assert.Equal(t, "name", actual.Name)
+		assert.Equal(t, "finalemail", actual.Email)
+		assert.Equal(t, 3, actual.Version)
 	})
 
 	t.Run("test for 1MB return from Query", func(t *testing.T) {

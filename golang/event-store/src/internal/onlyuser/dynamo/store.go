@@ -34,7 +34,7 @@ func (s Store) Save(ctx context.Context, user onlyuser.User) error {
 	}
 
 	var items []dbEventItem
-	for _, change := range changes {
+	for i, change := range changes {
 		serializedChange, err := json.Marshal(change)
 		if err != nil {
 			return err
@@ -46,7 +46,7 @@ func (s Store) Save(ctx context.Context, user onlyuser.User) error {
 			item = dbEventItem{
 				key: key{
 					ID:      fmt.Sprintf("user-%s", user.ID),
-					Version: 0, // TODO
+					Version: user.Version + i + 1, // TODO
 				},
 				Type: "UserCreated",
 				Data: string(serializedChange),
@@ -55,7 +55,7 @@ func (s Store) Save(ctx context.Context, user onlyuser.User) error {
 			item = dbEventItem{
 				key: key{
 					ID:      fmt.Sprintf("user-%s", user.ID),
-					Version: 0, // TODO
+					Version: user.Version + i + 1, // TODO
 				},
 				Type: "UserEmailChanged",
 				Data: string(serializedChange),
@@ -156,8 +156,8 @@ func (s Store) readEvents(ctx context.Context, streamName string) ([]dbEventItem
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":hashKey": &types.AttributeValueMemberS{Value: streamName},
 		},
-
-		ConsistentRead: aws.Bool(true),
+		ScanIndexForward: aws.Bool(true), // important to read events in asc order
+		ConsistentRead:   aws.Bool(true),
 	})
 	if err != nil {
 		return nil, err
