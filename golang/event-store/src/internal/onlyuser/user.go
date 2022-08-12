@@ -9,20 +9,18 @@ type User struct {
 	Email string
 }
 
-// TODO: this should be generic! belongs to Entity class
-func (u *User) Apply(event interface{}) {
-	u.When(event)
-	u.Changes = append(u.Changes, event)
+func NewUser(name, email string) User {
+	user := User{}
+	user.Apply(UserCreated{
+		Name:  name,
+		Email: email,
+	})
+	return user
 }
 
-// TODO: this should be abstract method reimplemented in all subclasses!
-func (u *User) When(event interface{}) {
-	switch v := event.(type) {
-	case UserEmailChanged:
-		u.Email = v.Email
-	default:
-		panic("unknown event type!")
-	}
+type UserCreated struct {
+	Name  string
+	Email string
 }
 
 type UserEmailChanged struct {
@@ -38,4 +36,23 @@ func (u *User) ChangeEmail(email string) {
 		UserID: u.ID,
 		Email:  newEmail,
 	})
+}
+
+// TODO: this should be generic! belongs to Entity class
+func (u *User) Apply(event interface{}) {
+	u.When(event)
+	u.Changes = append(u.Changes, event)
+}
+
+// TODO: this should be abstract method reimplemented in all subclasses!
+func (u *User) When(event interface{}) {
+	switch v := event.(type) {
+	case UserCreated:
+		u.Name = v.Name
+		u.Email = v.Email
+	case UserEmailChanged:
+		u.Email = v.Email
+	default:
+		panic("unknown event type!")
+	}
 }

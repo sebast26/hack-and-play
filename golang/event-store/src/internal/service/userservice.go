@@ -10,12 +10,8 @@ type UserService struct {
 	store dynamo.Store
 }
 
-func NewUserService(store dynamo.Store) *UserService {
-	return &UserService{
-		store: store,
-	}
-}
-
+// Handle shows how the APIs for Load/Save from store does not change when
+// switching from state-persistence into event sourcing
 func (us UserService) Handle(ctx context.Context, command ChangeUserEmailCommand) {
 	// this should stay the same both in an old and a new way
 	user := us.store.Load(ctx, command.userID)
