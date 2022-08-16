@@ -27,11 +27,11 @@ type ItemAdded struct {
 	Total   int
 }
 
-func NewOrder() *Order {
+func NewOrder() Order {
 	order := Order{}
 	id := uuid.New()
 	order.Apply(OrderCreated{OrderID: id.String()})
-	return &order
+	return order
 }
 
 func (o *Order) AddItem(item OrderItem) {
