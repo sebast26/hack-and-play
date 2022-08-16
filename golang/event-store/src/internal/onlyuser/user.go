@@ -35,12 +35,9 @@ type UserEmailChanged struct {
 }
 
 func (u *User) ChangeEmail(email string) {
-	// this is important, to not mutate state here!!
-	newEmail := email
-
 	u.Apply(UserEmailChanged{
 		UserID: u.ID,
-		Email:  newEmail,
+		Email:  email,
 	})
 }
 

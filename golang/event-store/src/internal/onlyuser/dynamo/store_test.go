@@ -75,6 +75,16 @@ func TestEventStore(t *testing.T) {
 		assert.Equal(t, 3, actual.Version)
 	})
 
+	t.Run("success - multiple users and mutations", func(t *testing.T) {
+		// given
+		// TODO!!
+
+		// when
+
+		// then
+
+	})
+
 	t.Run("test for 1MB return from Query", func(t *testing.T) {
 
 	})
