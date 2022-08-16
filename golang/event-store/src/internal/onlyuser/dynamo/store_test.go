@@ -27,9 +27,10 @@ func TestEventStore(t *testing.T) {
 		assert.Equal(t, 1, user.Version) // internals: should it be here?
 
 		// when
-		actual := store.Load(ctx, user.ID)
+		actual, err := store.Load(ctx, user.ID)
 
 		// then
+		assert.NoError(t, err)
 		assert.Equal(t, user.ID, actual.ID)
 		assert.Equal(t, user.Name, actual.Name)
 		assert.Equal(t, user.Email, actual.Email)
@@ -49,7 +50,8 @@ func TestEventStore(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, 2, user.Version) // internals: should it be here?
-		actual := store.Load(ctx, user.ID)
+		actual, err := store.Load(ctx, user.ID)
+		assert.NoError(t, err)
 		assert.Equal(t, "name", actual.Name)
 		assert.Equal(t, "otheremail", actual.Email)
 		assert.Equal(t, 2, actual.Version) // internals: should it be here?
@@ -69,7 +71,8 @@ func TestEventStore(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, 3, user.Version)
-		actual := store.Load(ctx, user.ID)
+		actual, err := store.Load(ctx, user.ID)
+		assert.NoError(t, err)
 		assert.Equal(t, "name", actual.Name)
 		assert.Equal(t, "finalemail", actual.Email)
 		assert.Equal(t, 3, actual.Version)

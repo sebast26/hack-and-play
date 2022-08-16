@@ -27,36 +27,61 @@ func NewStore(dynamoClient *dynamodb.Client, table string) *Store {
 	}
 }
 
+func (s Store) Load(ctx context.Context, userID string) (onlyuser.User, error) {
+	streamName := fmt.Sprintf("user-%s", userID)
+	dbEvents, err := s.readEvents(ctx, streamName)
+	if err != nil {
+		return onlyuser.User{}, fmt.Errorf("%v: cannot read events", err)
+	}
+	if len(dbEvents) == 0 {
+		return onlyuser.User{}, nil // TODO: is it properly handled? how to handle it?
+	}
+
+	events, err := loadEvents(dbEvents)
+	if err != nil {
+		return onlyuser.User{}, fmt.Errorf("%v: cannot load events", err)
+	}
+	var user = onlyuser.User{}
+	for _, event := range events {
+		user.When(event)
+	}
+	return user, nil
+}
+
 func (s Store) Save(ctx context.Context, user onlyuser.User) error {
-	changes := user.Changes
-	if len(changes) == 0 {
+	if len(user.Changes) == 0 {
 		return nil // nothing to do
 	}
 
+	dbItems, err := toDBItems(user, user.Changes)
+	if err != nil {
+		return fmt.Errorf("%v: error converting to DB items", err)
+	}
+
+	return s.appendEvents(ctx, dbItems)
+}
+
+func toDBItems(user onlyuser.User, changes []interface{}) ([]dbEventItem, error) {
 	var items []dbEventItem
 	for i, change := range changes {
 		serializedChange, err := json.Marshal(change)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		var item dbEventItem
 		switch change.(type) {
 		case onlyuser.UserCreated:
+			key := toKey(user, i)
 			item = dbEventItem{
-				key: key{
-					ID:      fmt.Sprintf("user-%s", user.ID),
-					Version: user.Version + i + 1, // TODO
-				},
+				key:  key,
 				Type: "UserCreated",
 				Data: string(serializedChange),
 			}
 		case onlyuser.UserEmailChanged:
+			key := toKey(user, i)
 			item = dbEventItem{
-				key: key{
-					ID:      fmt.Sprintf("user-%s", user.ID),
-					Version: user.Version + i + 1, // TODO
-				},
+				key:  key,
 				Type: "UserEmailChanged",
 				Data: string(serializedChange),
 			}
@@ -65,66 +90,17 @@ func (s Store) Save(ctx context.Context, user onlyuser.User) error {
 		items = append(items, item)
 	}
 
-	// TODO: db.AppendEvents(streamName, dbEventItems);
-	for _, e := range items {
-		item, err := attributevalue.MarshalMap(e)
-		if err != nil {
-			return err
-		}
-
-		out, err := s.db.PutItem(ctx, &dynamodb.PutItemInput{
-			ConditionExpression:       nil,
-			ExpressionAttributeNames:  nil,
-			ExpressionAttributeValues: nil,
-			Item:                      item,
-			TableName:                 aws.String(s.table),
-			ReturnValues:              "ALL_OLD",
-		})
-
-		if IsConditionalCheckFailed(err) {
-			// TODO: concurrent update
-			// should retry
-			return err
-		}
-
-		if err != nil {
-			return err
-		}
-
-		if out.Attributes == nil { // successfully added
-
-		}
-	}
-
-	return nil
+	return items, nil
 }
 
-// IsConditionalCheckFailed checks if generic error is AWS specific one
-// for types.ConditionalCheckFailedException.
-func IsConditionalCheckFailed(err error) bool {
-	var conditionalCheckError *types.ConditionalCheckFailedException
-	return errors.As(err, &conditionalCheckError)
-}
-
-func (s Store) Load(ctx context.Context, userID string) onlyuser.User {
-	streamName := fmt.Sprintf("user-%s", userID)
-
-	dbEvents, err := s.readEvents(ctx, streamName)
-	if err != nil {
-		return onlyuser.User{}
-	}
-	if len(dbEvents) == 0 {
-		return onlyuser.User{} // TODO: is it properly handled? how to handle it?
-	}
-
+func loadEvents(dbEvents []dbEventItem) ([]interface{}, error) {
 	var events []interface{}
 	for _, dbEvent := range dbEvents {
 		if dbEvent.Type == "UserCreated" {
 			var e onlyuser.UserCreated
 			err := json.Unmarshal([]byte(dbEvent.Data), &e)
 			if err != nil {
-				// TODO
-				return onlyuser.User{}
+				return nil, err
 			}
 			events = append(events, e)
 		}
@@ -132,18 +108,19 @@ func (s Store) Load(ctx context.Context, userID string) onlyuser.User {
 			var e onlyuser.UserEmailChanged
 			err := json.Unmarshal([]byte(dbEvent.Data), &e)
 			if err != nil {
-				// TODO!!
-				return onlyuser.User{}
+				return nil, err
 			}
 			events = append(events, e)
 		}
 	}
+	return events, nil
+}
 
-	var user = onlyuser.User{}
-	for _, event := range events {
-		user.When(event)
-	}
-	return user
+// IsConditionalCheckFailed checks if generic error is AWS specific one
+// for types.ConditionalCheckFailedException.
+func IsConditionalCheckFailed(err error) bool {
+	var conditionalCheckError *types.ConditionalCheckFailedException
+	return errors.As(err, &conditionalCheckError)
 }
 
 func (s Store) readEvents(ctx context.Context, streamName string) ([]dbEventItem, error) {
@@ -180,6 +157,40 @@ func (s Store) readEvents(ctx context.Context, streamName string) ([]dbEventItem
 	return events, nil
 }
 
+func (s Store) appendEvents(ctx context.Context, items []dbEventItem) error {
+	for _, e := range items {
+		item, err := attributevalue.MarshalMap(e)
+		if err != nil {
+			return err
+		}
+
+		out, err := s.db.PutItem(ctx, &dynamodb.PutItemInput{
+			ConditionExpression:       nil,
+			ExpressionAttributeNames:  nil,
+			ExpressionAttributeValues: nil,
+			Item:                      item,
+			TableName:                 aws.String(s.table),
+			ReturnValues:              "ALL_OLD",
+		})
+
+		if IsConditionalCheckFailed(err) {
+			// TODO: concurrent update
+			// should retry
+			return err
+		}
+
+		if err != nil {
+			return err
+		}
+
+		if out.Attributes == nil { // successfully added
+
+		}
+	}
+
+	return nil
+}
+
 type key struct {
 	ID      string `dynamodbav:"id"`
 	Version int    `dynamodbav:"version"`
@@ -191,4 +202,11 @@ type dbEventItem struct {
 
 	Type string `dynamodbav:"event_type"`
 	Data string `dynamodbav:"event_data"`
+}
+
+func toKey(user onlyuser.User, i int) key {
+	return key{
+		ID:      fmt.Sprintf("user-%s", user.ID),
+		Version: user.Version + i + 1,
+	}
 }
