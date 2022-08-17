@@ -1,13 +1,12 @@
 package onlyuser
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"sgorecki.me/golang/event-store/src/internal/es"
+)
 
 type User struct {
-	// TODO: this should be generic! belongs to Entity class
-	Changes []interface{}
-	Version int
-
-	ID    string
+	es.Entity
 	Name  string
 	Email string
 }
@@ -15,7 +14,7 @@ type User struct {
 func NewUser(name, email string) User {
 	user := User{}
 	id := uuid.New()
-	user.Apply(UserCreated{
+	user.Apply(&user, UserCreated{
 		ID:    id.String(),
 		Name:  name,
 		Email: email,
@@ -35,19 +34,12 @@ type UserEmailChanged struct {
 }
 
 func (u *User) ChangeEmail(email string) {
-	u.Apply(UserEmailChanged{
+	u.Apply(u, UserEmailChanged{
 		UserID: u.ID,
 		Email:  email,
 	})
 }
 
-// TODO: this should be generic! belongs to Entity class
-func (u *User) Apply(event interface{}) {
-	u.When(event)
-	u.Changes = append(u.Changes, event)
-}
-
-// TODO: this should be abstract method reimplemented in all subclasses!
 func (u *User) When(event interface{}) {
 	switch v := event.(type) {
 	case UserCreated:

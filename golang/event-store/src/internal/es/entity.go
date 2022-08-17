@@ -3,7 +3,7 @@ package es
 // EventSourcer interface for event-based entities (following Event Sourcing pattern).
 type EventSourcer interface {
 	Apply(EventSourcer, interface{})
-	When()
+	When(event interface{})
 }
 
 // Entity is a base type for all event-based entities.
@@ -15,6 +15,6 @@ type Entity struct {
 
 // Apply generic method that applies event on given entity.
 func (e *Entity) Apply(entity EventSourcer, event interface{}) {
-	entity.When()
+	entity.When(event)
 	e.Changes = append(e.Changes, event)
 }

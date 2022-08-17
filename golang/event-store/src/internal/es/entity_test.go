@@ -15,11 +15,11 @@ type EntityB struct {
 	es.Entity
 }
 
-func (a *EntityA) When() {
+func (a *EntityA) When(event interface{}) {
 	a.Version = 1
 }
 
-func (b *EntityB) When() {
+func (b *EntityB) When(event interface{}) {
 	b.Version = 2
 }
 
@@ -30,8 +30,8 @@ func TestEventSourcerEntity(t *testing.T) {
 		b := EntityB{Entity: es.Entity{Version: 0}}
 
 		// when
-		a.When()
-		b.When()
+		a.When("empty event")
+		b.When("empty event")
 
 		// then
 		assert.Equal(t, 1, a.Version)
