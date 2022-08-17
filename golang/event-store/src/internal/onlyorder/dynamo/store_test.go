@@ -28,11 +28,11 @@ func TestEventStore(t *testing.T) {
 		assert.Equal(t, 1, order.Version) // internals: should it be here?
 
 		// when
-		actual, err := store.Load(ctx, order.OrderID)
+		actual, err := store.Load(ctx, order.ID)
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, order.OrderID, actual.OrderID)
+		assert.Equal(t, order.ID, actual.ID)
 		assert.Empty(t, actual.OrderItems)
 		assert.Equal(t, 0, actual.TotalAmount)
 		assert.Equal(t, 1, actual.Version) // internals: should it be here?
@@ -52,7 +52,7 @@ func TestEventStore(t *testing.T) {
 		// then
 		assert.NoError(t, err)
 		assert.Equal(t, 2, order.Version) // internals: should it be here?
-		actual, err := store.Load(ctx, order.OrderID)
+		actual, err := store.Load(ctx, order.ID)
 		assert.NoError(t, err)
 		assert.Contains(t, actual.OrderItems, item)
 		assert.Equal(t, 1000, actual.TotalAmount)

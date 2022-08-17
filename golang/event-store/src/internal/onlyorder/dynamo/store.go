@@ -191,7 +191,7 @@ func toDBItems(order onlyorder.Order, changes []interface{}) ([]dbEventItem, err
 
 func toKey(order onlyorder.Order, i int) key {
 	return key{
-		ID:      fmt.Sprintf("order-%s", order.OrderID),
+		ID:      fmt.Sprintf("order-%s", order.ID),
 		Version: order.Version + i + 1,
 	}
 }

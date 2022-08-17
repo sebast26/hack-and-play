@@ -13,7 +13,7 @@ func TestNewOrder(t *testing.T) {
 		order := onlyorder.NewOrder()
 
 		// then
-		assert.NotEmpty(t, order.OrderID)
+		assert.NotEmpty(t, order.ID)
 		assert.Empty(t, order.OrderItems)
 		assert.Equal(t, 0, order.TotalAmount)
 	})
