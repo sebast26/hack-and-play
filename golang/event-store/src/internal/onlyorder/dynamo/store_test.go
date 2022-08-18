@@ -6,8 +6,9 @@ import (
 
 	"git.naspersclassifieds.com/olxeu/specialized/kuna/platform-v2/testing/dynamo"
 	"github.com/stretchr/testify/assert"
+	eventstore "sgorecki.me/golang/event-store/src/internal/es/dynamo"
 	"sgorecki.me/golang/event-store/src/internal/onlyorder"
-	onlyorderdynamo "sgorecki.me/golang/event-store/src/internal/onlyorder/dynamo"
+	orderstore "sgorecki.me/golang/event-store/src/internal/onlyorder/dynamo"
 )
 
 // Only basic tests for order (not checking versioning, concurrency, limits, etc). Original tests in onlyuser.
@@ -17,7 +18,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("success - create order", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := onlyorderdynamo.NewStore(db, table)
+		store := orderstore.NewStore(eventstore.NewStore(db, table))
 		order := onlyorder.NewOrder()
 
 		// when
@@ -41,7 +42,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("success - adding item to order", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := onlyorderdynamo.NewStore(db, table)
+		store := orderstore.NewStore(eventstore.NewStore(db, table))
 		order := onlyorder.NewOrder()
 		item := onlyorder.OrderItem{Name: "shiny item", Total: 1000}
 

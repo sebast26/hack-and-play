@@ -60,7 +60,7 @@ func (s Store) ReadEvents(ctx context.Context, streamName string) ([]DBEventItem
 }
 
 func (s Store) AppendEvents(ctx context.Context, items []DBEventItem) error {
-	// TODO: should use transact_write_items
+	//TODO: should use transact_write_items
 	for _, e := range items {
 		item, err := attributevalue.MarshalMap(e)
 		if err != nil {
