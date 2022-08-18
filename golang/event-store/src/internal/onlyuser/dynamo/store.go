@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"sgorecki.me/golang/event-store/src/internal/es"
+
 	eventstore "sgorecki.me/golang/event-store/src/internal/es/dynamo"
 	"sgorecki.me/golang/event-store/src/internal/onlyuser"
 )
@@ -31,11 +33,11 @@ func (s UserStore) Load(ctx context.Context, userID string) (onlyuser.User, erro
 		return onlyuser.User{}, nil // TODO: is it properly handled? how to handle it?
 	}
 
-	events, err := loadEvents(dbEvents)
+	events, version, err := loadEvents(dbEvents)
 	if err != nil {
 		return onlyuser.User{}, fmt.Errorf("%v: cannot load events", err)
 	}
-	var user = onlyuser.User{}
+	var user = onlyuser.User{Entity: es.Entity{Version: version}}
 	for _, event := range events {
 		user.When(event)
 	}
@@ -87,14 +89,14 @@ func toDBItems(user onlyuser.User, changes []interface{}) ([]eventstore.DBEventI
 	return items, nil
 }
 
-func loadEvents(dbEvents []eventstore.DBEventItem) ([]interface{}, error) {
+func loadEvents(dbEvents []eventstore.DBEventItem) ([]interface{}, int, error) {
 	var events []interface{}
 	for _, dbEvent := range dbEvents {
 		if dbEvent.Type == "UserCreated" {
 			var e onlyuser.UserCreated
 			err := json.Unmarshal([]byte(dbEvent.Data), &e)
 			if err != nil {
-				return nil, err
+				return nil, 0, err
 			}
 			events = append(events, e)
 		}
@@ -102,12 +104,12 @@ func loadEvents(dbEvents []eventstore.DBEventItem) ([]interface{}, error) {
 			var e onlyuser.UserEmailChanged
 			err := json.Unmarshal([]byte(dbEvent.Data), &e)
 			if err != nil {
-				return nil, err
+				return nil, 0, err
 			}
 			events = append(events, e)
 		}
 	}
-	return events, nil
+	return events, dbEvents[len(dbEvents)-1].Version, nil
 }
 
 func toKey(user onlyuser.User, i int) eventstore.EventKey {

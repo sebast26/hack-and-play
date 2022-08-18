@@ -54,20 +54,16 @@ func TestEventSourcerEntity(t *testing.T) {
 		assert.Equal(t, "b when", b.content)
 	})
 
-	t.Run("should properly version entities", func(t *testing.T) {
+	t.Run("should properly version entities - apply does not change entity version", func(t *testing.T) {
 		// given
 		a := EntityA{}
-		b := EntityB{}
 
 		// when
-		a.Apply(&a, "version 1")
-		a.Apply(&a, "version 2")
-		a.Apply(&a, "version 3")
-		b.Apply(&b, "version 1")
-		b.Apply(&b, "version 2")
+		a.Apply(&a, "version 0")
+		a.Apply(&a, "version 0")
+		a.Apply(&a, "version 0")
 
 		// then
-		assert.Equal(t, 3, a.Version)
-		assert.Equal(t, 2, b.Version)
+		assert.Equal(t, 0, a.Version)
 	})
 }

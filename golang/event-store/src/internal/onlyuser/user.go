@@ -51,5 +51,4 @@ func (u *User) When(event interface{}) {
 	default:
 		panic("unknown event type!")
 	}
-	u.Version++
 }

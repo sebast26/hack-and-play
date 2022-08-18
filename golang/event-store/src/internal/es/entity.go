@@ -17,5 +17,4 @@ type Entity struct {
 func (e *Entity) Apply(entity EventSourcer, event interface{}) {
 	entity.When(event)
 	e.Changes = append(e.Changes, event)
-	e.Version++
 }

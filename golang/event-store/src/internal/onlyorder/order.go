@@ -51,5 +51,4 @@ func (o *Order) When(event interface{}) {
 	default:
 		panic("unknown event type!")
 	}
-	o.Version++
 }

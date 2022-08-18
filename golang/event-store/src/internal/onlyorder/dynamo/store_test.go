@@ -26,7 +26,6 @@ func TestEventStore(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, 1, order.Version) // internals: should it be here?
 
 		// when
 		actual, err := store.Load(ctx, order.ID)
@@ -52,7 +51,6 @@ func TestEventStore(t *testing.T) {
 
 		// then
 		assert.NoError(t, err)
-		assert.Equal(t, 2, order.Version) // internals: should it be here?
 		actual, err := store.Load(ctx, order.ID)
 		assert.NoError(t, err)
 		assert.Contains(t, actual.OrderItems, item)
