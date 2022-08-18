@@ -6,8 +6,9 @@ import (
 
 	"git.naspersclassifieds.com/olxeu/specialized/kuna/platform-v2/testing/dynamo"
 	"github.com/stretchr/testify/assert"
+	eventstore "sgorecki.me/golang/event-store/src/internal/es/dynamo"
 	"sgorecki.me/golang/event-store/src/internal/onlyuser"
-	onlyuserdynamo "sgorecki.me/golang/event-store/src/internal/onlyuser/dynamo"
+	userstore "sgorecki.me/golang/event-store/src/internal/onlyuser/dynamo"
 )
 
 func TestEventStore(t *testing.T) {
@@ -16,7 +17,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("success - create user", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := onlyuserdynamo.NewStore(db, table)
+		store := userstore.NewStore(eventstore.NewStore(db, table))
 		user := onlyuser.NewUser("name", "email")
 
 		// when
@@ -40,7 +41,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("success - user changed email", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := onlyuserdynamo.NewStore(db, table)
+		store := userstore.NewStore(eventstore.NewStore(db, table))
 		user := onlyuser.NewUser("name", "email")
 
 		// when
@@ -60,7 +61,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("success - user changed email, order of events matter", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := onlyuserdynamo.NewStore(db, table)
+		store := userstore.NewStore(eventstore.NewStore(db, table))
 		user := onlyuser.NewUser("name", "email")
 
 		// when

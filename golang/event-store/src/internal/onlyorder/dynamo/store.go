@@ -84,6 +84,7 @@ func loadEvents(dbEvents []dbEventItem) ([]interface{}, error) {
 }
 
 func (s Store) appendEvents(ctx context.Context, items []dbEventItem) error {
+	// TODO: should use transact_write_items
 	for _, e := range items {
 		item, err := attributevalue.MarshalMap(e)
 		if err != nil {

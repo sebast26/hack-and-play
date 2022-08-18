@@ -7,7 +7,7 @@ import (
 )
 
 type UserService struct {
-	store dynamo.Store
+	store dynamo.UserStore
 }
 
 // Handle shows how the APIs for Load/Save from store does not change when
