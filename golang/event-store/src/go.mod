@@ -6,7 +6,9 @@ require (
 	git.naspersclassifieds.com/olxeu/specialized/kuna/platform-v2 v0.0.0-20220630105852-b7957684c083
 	github.com/aws/aws-sdk-go-v2 v1.16.10
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.9.10
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.0.1
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.15.12
+	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.7.1
 )
 
@@ -21,7 +23,6 @@ require (
 	github.com/aws/smithy-go v1.12.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.10.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect

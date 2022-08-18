@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -23,6 +24,10 @@ func NewStore(dynamoClient *dynamodb.Client, table string) *Store {
 		table: table,
 	}
 }
+
+var (
+	ErrConcurrentUpdate = errors.New("concurrent update on item")
+)
 
 func (s Store) ReadEvents(ctx context.Context, streamName string) ([]DBEventItem, error) {
 	// TODO: Solve issue with max 1MB result (pagination)
@@ -67,19 +72,24 @@ func (s Store) AppendEvents(ctx context.Context, items []DBEventItem) error {
 			return err
 		}
 
+		expr, err := expression.NewBuilder().
+			WithCondition(expression.And(
+				expression.AttributeNotExists(expression.Name(idField)),
+				expression.AttributeNotExists(expression.Name(versionField)))).Build()
+		if err != nil {
+			return err
+		}
+
 		out, err := s.db.PutItem(ctx, &dynamodb.PutItemInput{
-			ConditionExpression:       nil,
-			ExpressionAttributeNames:  nil,
-			ExpressionAttributeValues: nil,
-			Item:                      item,
-			TableName:                 aws.String(s.table),
-			ReturnValues:              "ALL_OLD",
+			ConditionExpression:      expr.Condition(),
+			ExpressionAttributeNames: expr.Names(),
+			Item:                     item,
+			TableName:                aws.String(s.table),
+			ReturnValues:             "ALL_OLD",
 		})
 
 		if isConditionalCheckFailed(err) {
-			// TODO: concurrent update
-			// should retry
-			return err
+			return ErrConcurrentUpdate
 		}
 
 		if err != nil {
@@ -113,3 +123,8 @@ type DBEventItem struct {
 	Type string `dynamodbav:"event_type"`
 	Data string `dynamodbav:"event_data"`
 }
+
+const (
+	idField      = "id"
+	versionField = "version"
+)
