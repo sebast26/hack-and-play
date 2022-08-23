@@ -30,35 +30,44 @@ var (
 )
 
 func (s Store) ReadEvents(ctx context.Context, streamName string) ([]DBEventItem, error) {
-	// TODO: Solve issue with max 1MB result (pagination)
-	out, err := s.db.Query(ctx, &dynamodb.QueryInput{
-		TableName:              aws.String(s.table),
-		KeyConditionExpression: aws.String("#id = :hashKey"),
-		ExpressionAttributeNames: map[string]string{
-			"#id": "id",
-		},
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":hashKey": &types.AttributeValueMemberS{Value: streamName},
-		},
-		ScanIndexForward: aws.Bool(true), // important to read events in asc order
-		ConsistentRead:   aws.Bool(true),
-	})
+	expr, err := expression.NewBuilder().
+		WithKeyCondition(expression.KeyEqual(expression.Key(idField), expression.Value(streamName))).
+		Build()
 	if err != nil {
 		return nil, err
 	}
 
-	if len(out.Items) == 0 {
-		return nil, nil // TODO: should it be here or in invoking function?
-	}
-
 	var events []DBEventItem
-	for _, rawItem := range out.Items {
-		var item DBEventItem
-		err = attributevalue.UnmarshalMap(rawItem, &item)
+	var lastEvaluatedKey map[string]types.AttributeValue
+	for {
+		out, err := s.db.Query(ctx, &dynamodb.QueryInput{
+			TableName:                 aws.String(s.table),
+			KeyConditionExpression:    expr.KeyCondition(),
+			ExpressionAttributeNames:  expr.Names(),
+			ExpressionAttributeValues: expr.Values(),
+			ScanIndexForward:          aws.Bool(true), // important to read events in asc order
+			ConsistentRead:            aws.Bool(true),
+			ExclusiveStartKey:         lastEvaluatedKey,
+		})
 		if err != nil {
 			return nil, err
 		}
-		events = append(events, item)
+
+		lastEvaluatedKey = out.LastEvaluatedKey
+
+		for _, rawItem := range out.Items {
+			var item DBEventItem
+			err = attributevalue.UnmarshalMap(rawItem, &item)
+			if err != nil {
+				return nil, err
+			}
+			events = append(events, item)
+		}
+
+		// break when crossed the limit or no more to scan
+		if out.LastEvaluatedKey == nil {
+			break
+		}
 	}
 
 	return events, nil

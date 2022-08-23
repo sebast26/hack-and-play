@@ -2,11 +2,11 @@ package dynamo_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"git.naspersclassifieds.com/olxeu/specialized/kuna/platform-v2/testing/dynamo"
+	"github.com/stretchr/testify/assert"
 	eventstore "sgorecki.me/golang/event-store/src/internal/es/dynamo"
 )
 
@@ -58,4 +58,62 @@ func TestEventStore(t *testing.T) {
 		assert.Error(t, err2)
 		assert.ErrorIs(t, err2, eventstore.ErrConcurrentUpdate)
 	})
+
+	t.Run("success - paging through events with over 1MB items", func(t *testing.T) {
+		// given
+		db, table := dynamo.SetupTable(t, "EventStore")
+		store := eventstore.NewStore(db, table)
+		items := []eventstore.DBEventItem{
+			generateItem(1, generate100KBString()),
+			generateItem(2, generate100KBString()),
+			generateItem(3, generate100KBString()),
+			generateItem(4, generate100KBString()),
+			generateItem(5, generate100KBString()),
+			generateItem(6, generate100KBString()),
+			generateItem(7, generate100KBString()),
+			generateItem(8, generate100KBString()),
+			generateItem(9, generate100KBString()),
+			generateItem(10, generate100KBString()),
+			generateItem(11, generate100KBString()),
+			generateItem(12, generate100KBString()),
+		}
+
+		// when
+		err := store.AppendEvents(ctx, items)
+
+		// then
+		assert.NoError(t, err)
+
+		// and
+		actual, err := store.ReadEvents(ctx, "event-1")
+		assert.NoError(t, err)
+		assert.Len(t, actual, 12)
+	})
+}
+
+func generate1KBString() string {
+	var sb strings.Builder
+	for i := 0; i < 1024; i++ {
+		sb.WriteRune('a')
+	}
+	return sb.String()
+}
+
+func generate100KBString() string {
+	var sb strings.Builder
+	for i := 0; i < 100; i++ {
+		sb.WriteString(generate1KBString())
+	}
+	return sb.String()
+}
+
+func generateItem(version int, data string) eventstore.DBEventItem {
+	return eventstore.DBEventItem{
+		EventKey: eventstore.EventKey{
+			ID:      "event-1",
+			Version: version,
+		},
+		Type: "test-event",
+		Data: data,
+	}
 }
