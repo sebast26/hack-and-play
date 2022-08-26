@@ -74,43 +74,82 @@ func (s Store) ReadEvents(ctx context.Context, streamName string) ([]DBEventItem
 }
 
 func (s Store) AppendEvents(ctx context.Context, items []DBEventItem) error {
-	//TODO: should use transact_write_items
-	for _, e := range items {
-		item, err := attributevalue.MarshalMap(e)
-		if err != nil {
-			return err
-		}
+	if len(items) == 0 {
+		return nil
+	} else if len(items) == 1 {
+		return s.appendEvent(ctx, items[0])
+	} else {
+		return s.appendEventsTransaction(ctx, items)
+	}
+}
 
-		expr, err := expression.NewBuilder().
-			WithCondition(expression.And(
-				expression.AttributeNotExists(expression.Name(idField)),
-				expression.AttributeNotExists(expression.Name(versionField)))).Build()
-		if err != nil {
-			return err
-		}
+func (s Store) appendEvent(ctx context.Context, event DBEventItem) error {
+	item, err := attributevalue.MarshalMap(event)
+	if err != nil {
+		return err
+	}
 
-		out, err := s.db.PutItem(ctx, &dynamodb.PutItemInput{
-			ConditionExpression:      expr.Condition(),
-			ExpressionAttributeNames: expr.Names(),
-			Item:                     item,
-			TableName:                aws.String(s.table),
-			ReturnValues:             "ALL_OLD",
-		})
+	expr, err := expression.NewBuilder().
+		WithCondition(expression.And(
+			expression.AttributeNotExists(expression.Name(idField)),
+			expression.AttributeNotExists(expression.Name(versionField)))).Build()
+	if err != nil {
+		return err
+	}
 
-		if isConditionalCheckFailed(err) {
-			return ErrConcurrentUpdate
-		}
+	out, err := s.db.PutItem(ctx, &dynamodb.PutItemInput{
+		ConditionExpression:      expr.Condition(),
+		ExpressionAttributeNames: expr.Names(),
+		Item:                     item,
+		TableName:                aws.String(s.table),
+		ReturnValues:             "ALL_OLD",
+	})
 
-		if err != nil {
-			return err
-		}
+	if isConditionalCheckFailed(err) {
+		return ErrConcurrentUpdate
+	}
 
-		if out.Attributes == nil { // successfully added
+	if err != nil {
+		return err
+	}
 
-		}
+	if out.Attributes == nil { // successfully added
+
 	}
 
 	return nil
+}
+
+func (s Store) appendEventsTransaction(ctx context.Context, events []DBEventItem) error {
+	expr, err := expression.NewBuilder().
+		WithCondition(expression.And(
+			expression.AttributeNotExists(expression.Name(idField)),
+			expression.AttributeNotExists(expression.Name(versionField)))).Build()
+	if err != nil {
+		return err
+	}
+
+	transactItems := make([]types.TransactWriteItem, len(events))
+	for i, event := range events {
+		item, err := attributevalue.MarshalMap(event)
+		if err != nil {
+			return err
+		}
+		transactItems[i] = types.TransactWriteItem{
+			Put: &types.Put{
+				Item:                     item,
+				TableName:                aws.String(s.table),
+				ConditionExpression:      expr.Condition(),
+				ExpressionAttributeNames: expr.Names(),
+			},
+		}
+	}
+
+	_, err = s.db.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+		TransactItems: transactItems,
+	})
+
+	return err
 }
 
 // isConditionalCheckFailed checks if generic error is AWS specific one

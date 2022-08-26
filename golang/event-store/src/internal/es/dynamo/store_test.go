@@ -38,6 +38,92 @@ func TestEventStore(t *testing.T) {
 		assert.Equal(t, 1, actual[0].Version)
 	})
 
+	t.Run("store multiple events", func(t *testing.T) {
+
+		t.Run("success - no events", func(t *testing.T) {
+			// given
+			db, table := dynamo.SetupTable(t, "EventStore")
+			store := eventstore.NewStore(db, table)
+
+			// when
+			err := store.AppendEvents(ctx, []eventstore.DBEventItem{})
+
+			// then
+			assert.NoError(t, err)
+		})
+
+		t.Run("success - multiple events", func(t *testing.T) {
+			// given
+			db, table := dynamo.SetupTable(t, "EventStore")
+			store := eventstore.NewStore(db, table)
+			items := []eventstore.DBEventItem{
+				{
+					EventKey: eventstore.EventKey{ID: "stream-1", Version: 1},
+				},
+				{
+					EventKey: eventstore.EventKey{ID: "stream-1", Version: 2},
+				},
+			}
+
+			// when
+			err := store.AppendEvents(ctx, items)
+
+			// then
+			assert.NoError(t, err)
+
+			// and
+			actual, err := store.ReadEvents(ctx, "stream-1")
+			assert.NoError(t, err)
+			assert.Len(t, actual, 2)
+			assert.Equal(t, eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}}, actual[0])
+			assert.Equal(t, eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 2}}, actual[1])
+		})
+
+		t.Run("failure - invalid event in batch, no entries added", func(t *testing.T) {
+			// given
+			db, table := dynamo.SetupTable(t, "EventStore")
+			store := eventstore.NewStore(db, table)
+			item := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}}
+			invalidItem := eventstore.DBEventItem{EventKey: eventstore.EventKey{}}
+
+			// when
+			err := store.AppendEvents(ctx, []eventstore.DBEventItem{item, invalidItem})
+
+			// then
+			assert.Error(t, err)
+
+			// and
+			actual, err := store.ReadEvents(ctx, "stream-1")
+			assert.NoError(t, err)
+			assert.Len(t, actual, 0)
+		})
+
+		t.Run("failure - concurrent update in second batch", func(t *testing.T) {
+			// given
+			db, table := dynamo.SetupTable(t, "EventStore")
+			store := eventstore.NewStore(db, table)
+			itemV1 := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}}
+			itemV2 := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 2}}
+
+			// when
+			err := store.AppendEvents(ctx, []eventstore.DBEventItem{itemV1})
+
+			// then
+			assert.NoError(t, err)
+
+			// when
+			err = store.AppendEvents(ctx, []eventstore.DBEventItem{itemV2, itemV1})
+
+			// then
+			assert.Error(t, err)
+
+			// when
+			actual, err := store.ReadEvents(ctx, "stream-1")
+			assert.Len(t, actual, 1)
+			assert.Equal(t, itemV1, actual[0])
+		})
+	})
+
 	t.Run("failure - concurrent update", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
