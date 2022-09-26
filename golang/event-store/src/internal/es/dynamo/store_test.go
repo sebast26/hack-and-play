@@ -143,6 +143,22 @@ func TestEventStore(t *testing.T) {
 			assert.Len(t, actual, 1)
 			assert.Equal(t, itemV1, actual[0])
 		})
+
+		t.Run("success - unique partition key + sort key", func(t *testing.T) {
+			// given
+			db, table := dynamo.SetupTable(t, "EventStore")
+			store := eventstore.NewStore(db, table)
+			itemV1 := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}}
+			otherV1 := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-2", Version: 1}}
+
+			// when
+			itemErr := store.AppendEvents(ctx, []eventstore.DBEventItem{itemV1})
+			otherErr := store.AppendEvents(ctx, []eventstore.DBEventItem{otherV1})
+
+			// then
+			assert.NoError(t, itemErr)
+			assert.NoError(t, otherErr)
+		})
 	})
 
 	t.Run("item collection limit of 1MB", func(t *testing.T) {
