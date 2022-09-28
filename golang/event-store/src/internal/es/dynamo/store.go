@@ -9,19 +9,22 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"sgorecki.me/golang/event-store/src/internal/clock"
 )
 
 // Store keeps dependencies.
 type Store struct {
 	db    *dynamodb.Client
 	table string
+	clock clock.Clock
 }
 
 // NewStore creates Store instance.
-func NewStore(dynamoClient *dynamodb.Client, table string) *Store {
+func NewStore(dynamoClient *dynamodb.Client, table string, clock clock.Clock) *Store {
 	return &Store{
 		db:    dynamoClient,
 		table: table,
+		clock: clock,
 	}
 }
 
@@ -84,7 +87,7 @@ func (s Store) AppendEvents(ctx context.Context, items []DBEventItem) error {
 }
 
 func (s Store) appendEvent(ctx context.Context, event DBEventItem) error {
-	item, err := attributevalue.MarshalMap(event)
+	item, err := s.prepareEvent(event)
 	if err != nil {
 		return err
 	}
@@ -131,7 +134,7 @@ func (s Store) appendEventsTransaction(ctx context.Context, events []DBEventItem
 
 	transactItems := make([]types.TransactWriteItem, len(events))
 	for i, event := range events {
-		item, err := attributevalue.MarshalMap(event)
+		item, err := s.prepareEvent(event)
 		if err != nil {
 			return err
 		}
@@ -152,6 +155,11 @@ func (s Store) appendEventsTransaction(ctx context.Context, events []DBEventItem
 	return err
 }
 
+func (s Store) prepareEvent(event DBEventItem) (map[string]types.AttributeValue, error) {
+	event.CreatedAt = s.clock.Now().Format(dateTimeFormat)
+	return attributevalue.MarshalMap(event)
+}
+
 // isConditionalCheckFailed checks if generic error is AWS specific one
 // for types.ConditionalCheckFailedException.
 func isConditionalCheckFailed(err error) bool {
@@ -168,11 +176,13 @@ type EventKey struct {
 type DBEventItem struct {
 	EventKey
 
-	Type string `dynamodbav:"event_type"`
-	Data string `dynamodbav:"event_data"`
+	Type      string `dynamodbav:"event_type"`
+	Data      string `dynamodbav:"event_data"`
+	CreatedAt string `dynamodbav:"created_at"`
 }
 
 const (
-	idField      = "id"
-	versionField = "version"
+	idField        = "id"
+	versionField   = "version"
+	dateTimeFormat = "2006-01-02T15:04:05.000000000Z"
 )

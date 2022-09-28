@@ -4,19 +4,23 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"git.naspersclassifieds.com/olxeu/specialized/kuna/platform-v2/testing/dynamo"
 	"github.com/stretchr/testify/assert"
+	"sgorecki.me/golang/event-store/src/internal/clock"
 	eventstore "sgorecki.me/golang/event-store/src/internal/es/dynamo"
 )
 
 func TestEventStore(t *testing.T) {
 	ctx := context.Background()
+	fixedClock := clock.NewFixedClock(time.Date(2022, 9, 27, 10, 15, 30, 51234, time.UTC))
+	fixedCreatedAt := "2022-09-27T10:15:30.000051234Z"
 
 	t.Run("success - store entity with single event", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := eventstore.NewStore(db, table)
+		store := eventstore.NewStore(db, table, fixedClock)
 		item := eventstore.DBEventItem{
 			EventKey: eventstore.EventKey{
 				ID:      "user-1",
@@ -41,7 +45,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("success - no events", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := eventstore.NewStore(db, table)
+		store := eventstore.NewStore(db, table, fixedClock)
 
 		// when
 		err := store.AppendEvents(ctx, []eventstore.DBEventItem{})
@@ -53,7 +57,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("success - multiple events", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := eventstore.NewStore(db, table)
+		store := eventstore.NewStore(db, table, fixedClock)
 		items := []eventstore.DBEventItem{
 			{
 				EventKey: eventstore.EventKey{ID: "stream-1", Version: 1},
@@ -73,14 +77,14 @@ func TestEventStore(t *testing.T) {
 		actual, err := store.ReadEvents(ctx, "stream-1")
 		assert.NoError(t, err)
 		assert.Len(t, actual, 2)
-		assert.Equal(t, eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}}, actual[0])
-		assert.Equal(t, eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 2}}, actual[1])
+		assert.Equal(t, eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}, CreatedAt: fixedCreatedAt}, actual[0])
+		assert.Equal(t, eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 2}, CreatedAt: fixedCreatedAt}, actual[1])
 	})
 
 	t.Run("failure - invalid event in batch, no entries added", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := eventstore.NewStore(db, table)
+		store := eventstore.NewStore(db, table, fixedClock)
 		item := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}}
 		invalidItem := eventstore.DBEventItem{EventKey: eventstore.EventKey{}}
 
@@ -96,12 +100,46 @@ func TestEventStore(t *testing.T) {
 		assert.Len(t, actual, 0)
 	})
 
+	t.Run("datetime of the events", func(t *testing.T) {
+		t.Run("success - register time of the event", func(t *testing.T) {
+			// given
+			db, table := dynamo.SetupTable(t, "EventStore")
+			store := eventstore.NewStore(db, table, fixedClock)
+			item := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}}
+
+			// when
+			err := store.AppendEvents(ctx, []eventstore.DBEventItem{item})
+
+			// then
+			assert.NoError(t, err)
+			actual, err := store.ReadEvents(ctx, "stream-1")
+			assert.Equal(t, "2022-09-27T10:15:30.000051234Z", actual[0].CreatedAt)
+		})
+
+		t.Run("success - zero nano-seconds format", func(t *testing.T) {
+			// given
+			db, table := dynamo.SetupTable(t, "EventStore")
+			zeroNanoClock := clock.NewFixedClock(time.Date(2022, 9, 27, 15, 10, 29, 0, time.UTC))
+			expectedCreatedAt := "2022-09-27T15:10:29.000000000Z"
+			store := eventstore.NewStore(db, table, zeroNanoClock)
+			item := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}}
+
+			// when
+			err := store.AppendEvents(ctx, []eventstore.DBEventItem{item})
+
+			// then
+			assert.NoError(t, err)
+			actual, err := store.ReadEvents(ctx, "stream-1")
+			assert.Equal(t, expectedCreatedAt, actual[0].CreatedAt)
+		})
+	})
+
 	t.Run("concurrent update", func(t *testing.T) {
 
 		t.Run("failure - adding same event", func(t *testing.T) {
 			// given
 			db, table := dynamo.SetupTable(t, "EventStore")
-			store := eventstore.NewStore(db, table)
+			store := eventstore.NewStore(db, table, fixedClock)
 			item := eventstore.DBEventItem{
 				EventKey: eventstore.EventKey{
 					ID:      "user-1",
@@ -122,9 +160,9 @@ func TestEventStore(t *testing.T) {
 		t.Run("failure - concurrent update in second batch", func(t *testing.T) {
 			// given
 			db, table := dynamo.SetupTable(t, "EventStore")
-			store := eventstore.NewStore(db, table)
-			itemV1 := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}}
-			itemV2 := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 2}}
+			store := eventstore.NewStore(db, table, fixedClock)
+			itemV1 := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}, CreatedAt: fixedCreatedAt}
+			itemV2 := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 2}, CreatedAt: fixedCreatedAt}
 
 			// when
 			err := store.AppendEvents(ctx, []eventstore.DBEventItem{itemV1})
@@ -147,7 +185,7 @@ func TestEventStore(t *testing.T) {
 		t.Run("success - unique partition key + sort key", func(t *testing.T) {
 			// given
 			db, table := dynamo.SetupTable(t, "EventStore")
-			store := eventstore.NewStore(db, table)
+			store := eventstore.NewStore(db, table, fixedClock)
 			itemV1 := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}}
 			otherV1 := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-2", Version: 1}}
 
@@ -165,7 +203,7 @@ func TestEventStore(t *testing.T) {
 		t.Run("success - paging through events with over 1MB items", func(t *testing.T) {
 			// given
 			db, table := dynamo.SetupTable(t, "EventStore")
-			store := eventstore.NewStore(db, table)
+			store := eventstore.NewStore(db, table, fixedClock)
 			items := []eventstore.DBEventItem{
 				generateItem(1, generate100KBString()),
 				generateItem(2, generate100KBString()),
