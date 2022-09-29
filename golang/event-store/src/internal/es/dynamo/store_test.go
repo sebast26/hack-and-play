@@ -8,14 +8,13 @@ import (
 
 	"git.naspersclassifieds.com/olxeu/specialized/kuna/platform-v2/testing/dynamo"
 	"github.com/stretchr/testify/assert"
-	"sgorecki.me/golang/event-store/src/internal/clock"
 	eventstore "sgorecki.me/golang/event-store/src/internal/es/dynamo"
 )
 
 func TestEventStore(t *testing.T) {
 	ctx := context.Background()
-	fixedClock := clock.NewFixedClock(time.Date(2022, 9, 27, 10, 15, 30, 51234, time.UTC))
 	fixedCreatedAt := "2022-09-27T10:15:30.000051234Z"
+	fixedClock := func() time.Time { return time.Date(2022, 9, 27, 10, 15, 30, 51234, time.UTC) }
 
 	t.Run("success - store entity with single event", func(t *testing.T) {
 		// given
@@ -119,7 +118,7 @@ func TestEventStore(t *testing.T) {
 		t.Run("success - zero nano-seconds format", func(t *testing.T) {
 			// given
 			db, table := dynamo.SetupTable(t, "EventStore")
-			zeroNanoClock := clock.NewFixedClock(time.Date(2022, 9, 27, 15, 10, 29, 0, time.UTC))
+			zeroNanoClock := func() time.Time { return time.Date(2022, 9, 27, 15, 10, 29, 0, time.UTC) }
 			expectedCreatedAt := "2022-09-27T15:10:29.000000000Z"
 			store := eventstore.NewStore(db, table, zeroNanoClock)
 			item := eventstore.DBEventItem{EventKey: eventstore.EventKey{ID: "stream-1", Version: 1}}

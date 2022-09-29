@@ -3,6 +3,7 @@ package dynamo_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"git.naspersclassifieds.com/olxeu/specialized/kuna/platform-v2/testing/dynamo"
 	"github.com/stretchr/testify/assert"
@@ -14,11 +15,12 @@ import (
 // Only basic tests for order (not checking versioning, concurrency, limits, etc). Original tests in onlyuser.
 func TestEventStore(t *testing.T) {
 	ctx := context.Background()
+	realClock := func() time.Time { return time.Now() }
 
 	t.Run("success - create order", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := orderstore.NewStore(eventstore.NewStore(db, table))
+		store := orderstore.NewStore(eventstore.NewStore(db, table, realClock))
 		order := onlyorder.NewOrder()
 
 		// when
@@ -41,7 +43,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("success - adding item to order", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := orderstore.NewStore(eventstore.NewStore(db, table))
+		store := orderstore.NewStore(eventstore.NewStore(db, table, realClock))
 		order := onlyorder.NewOrder()
 		item := onlyorder.OrderItem{Name: "shiny item", Total: 1000}
 

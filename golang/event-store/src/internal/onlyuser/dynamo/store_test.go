@@ -3,6 +3,7 @@ package dynamo_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"git.naspersclassifieds.com/olxeu/specialized/kuna/platform-v2/testing/dynamo"
 	"github.com/stretchr/testify/assert"
@@ -13,11 +14,12 @@ import (
 
 func TestEventStore(t *testing.T) {
 	ctx := context.Background()
+	realClock := func() time.Time { return time.Now() }
 
 	t.Run("success - create user", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := userstore.NewStore(eventstore.NewStore(db, table))
+		store := userstore.NewStore(eventstore.NewStore(db, table, realClock))
 		user := onlyuser.NewUser("name", "email")
 
 		// when
@@ -40,7 +42,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("success - user changed email", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := userstore.NewStore(eventstore.NewStore(db, table))
+		store := userstore.NewStore(eventstore.NewStore(db, table, realClock))
 		user := onlyuser.NewUser("name", "email")
 
 		// when
@@ -59,7 +61,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("success - user changed email, order of events matter", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := userstore.NewStore(eventstore.NewStore(db, table))
+		store := userstore.NewStore(eventstore.NewStore(db, table, realClock))
 		user := onlyuser.NewUser("name", "email")
 
 		// when
@@ -94,7 +96,7 @@ func TestEventStore(t *testing.T) {
 	t.Run("failure - concurrent update", func(t *testing.T) {
 		// given
 		db, table := dynamo.SetupTable(t, "EventStore")
-		store := userstore.NewStore(eventstore.NewStore(db, table))
+		store := userstore.NewStore(eventstore.NewStore(db, table, realClock))
 		user := onlyuser.NewUser("name", "email")
 
 		// when

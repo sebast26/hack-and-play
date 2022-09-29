@@ -3,24 +3,26 @@ package dynamo
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"sgorecki.me/golang/event-store/src/internal/clock"
 )
+
+type Clock func() time.Time
 
 // Store keeps dependencies.
 type Store struct {
 	db    *dynamodb.Client
 	table string
-	clock clock.Clock
+	clock Clock
 }
 
 // NewStore creates Store instance.
-func NewStore(dynamoClient *dynamodb.Client, table string, clock clock.Clock) *Store {
+func NewStore(dynamoClient *dynamodb.Client, table string, clock Clock) *Store {
 	return &Store{
 		db:    dynamoClient,
 		table: table,
@@ -156,7 +158,7 @@ func (s Store) appendEventsTransaction(ctx context.Context, events []DBEventItem
 }
 
 func (s Store) prepareEvent(event DBEventItem) (map[string]types.AttributeValue, error) {
-	event.CreatedAt = s.clock.Now().Format(dateTimeFormat)
+	event.CreatedAt = s.clock().Format(dateTimeFormat)
 	return attributevalue.MarshalMap(event)
 }
 
