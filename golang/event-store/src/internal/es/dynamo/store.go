@@ -12,21 +12,22 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-type Clock func() time.Time
+// Timer is a function returning current time.
+type Timer func() time.Time
 
 // Store keeps dependencies.
 type Store struct {
 	db    *dynamodb.Client
 	table string
-	clock Clock
+	timer Timer
 }
 
 // NewStore creates Store instance.
-func NewStore(dynamoClient *dynamodb.Client, table string, clock Clock) *Store {
+func NewStore(dynamoClient *dynamodb.Client, table string, clock Timer) *Store {
 	return &Store{
 		db:    dynamoClient,
 		table: table,
-		clock: clock,
+		timer: clock,
 	}
 }
 
@@ -158,7 +159,7 @@ func (s Store) appendEventsTransaction(ctx context.Context, events []DBEventItem
 }
 
 func (s Store) prepareEvent(event DBEventItem) (map[string]types.AttributeValue, error) {
-	event.CreatedAt = s.clock().Format(dateTimeFormat)
+	event.CreatedAt = s.timer().Format(dateTimeFormat)
 	return attributevalue.MarshalMap(event)
 }
 
