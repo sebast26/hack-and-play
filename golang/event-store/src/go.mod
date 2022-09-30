@@ -1,6 +1,6 @@
 module sgorecki.me/golang/event-store/src
 
-go 1.17
+go 1.19
 
 require (
 	git.naspersclassifieds.com/olxeu/specialized/kuna/platform-v2 v0.0.0-20220630105852-b7957684c083
