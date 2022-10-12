@@ -1,8 +1,12 @@
 package onlyorder
 
 import (
+	"encoding/json"
+	"errors"
+
 	"github.com/google/uuid"
 	"sgorecki.me/golang/event-store/src/internal/es"
+	eventstore "sgorecki.me/golang/event-store/src/internal/es/dynamo"
 )
 
 type Order struct {
@@ -20,10 +24,28 @@ type OrderCreated struct {
 	OrderID string
 }
 
+func NewOrderCreated(data string) (OrderCreated, error) {
+	var e OrderCreated
+	err := json.Unmarshal([]byte(data), &e)
+	if err != nil {
+		return OrderCreated{}, err
+	}
+	return e, nil
+}
+
 type ItemAdded struct {
 	OrderID string
 	Item    OrderItem
 	Total   int
+}
+
+func NewItemAdded(data string) (ItemAdded, error) {
+	var e ItemAdded
+	err := json.Unmarshal([]byte(data), &e)
+	if err != nil {
+		return ItemAdded{}, err
+	}
+	return e, nil
 }
 
 func NewOrder() Order {
@@ -40,6 +62,27 @@ func (o *Order) AddItem(item OrderItem) {
 		Item:    item,
 		Total:   item.Total,
 	})
+}
+
+func (o *Order) When2(event eventstore.DBEventItem) error {
+	switch event.Type {
+	case "OrderCreated":
+		v, err := NewOrderCreated(event.Data)
+		if err != nil {
+			return err
+		}
+		o.ID = v.OrderID
+	case "ItemAdded":
+		v, err := NewItemAdded(event.Data)
+		if err != nil {
+			return err
+		}
+		o.OrderItems = append(o.OrderItems, v.Item)
+		o.TotalAmount += v.Total
+	default:
+		return errors.New("unknown event type")
+	}
+	return nil
 }
 
 func (o *Order) When(event interface{}) {
