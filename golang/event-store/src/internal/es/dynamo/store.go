@@ -184,6 +184,10 @@ type DBEventItem struct {
 	CreatedAt string `dynamodbav:"created_at"`
 }
 
+func Version(items []DBEventItem) int {
+	return items[len(items)-1].Version
+}
+
 const (
 	idField        = "id"
 	versionField   = "version"

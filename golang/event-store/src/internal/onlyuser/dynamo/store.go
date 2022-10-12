@@ -33,13 +33,12 @@ func (s UserStore) Load(ctx context.Context, userID string) (onlyuser.User, erro
 		return onlyuser.User{}, nil // TODO: is it properly handled? how to handle it?
 	}
 
-	events, version, err := loadEvents(dbEvents)
-	if err != nil {
-		return onlyuser.User{}, fmt.Errorf("%v: cannot load events", err)
-	}
-	var user = onlyuser.User{Entity: es.Entity{Version: version}}
-	for _, event := range events {
-		user.When(event)
+	var user = onlyuser.User{Entity: es.Entity{Version: eventstore.Version(dbEvents)}}
+	for _, event := range dbEvents {
+		err := user.When2(event)
+		if err != nil {
+			return onlyuser.User{}, err
+		}
 	}
 	return user, nil
 }
@@ -87,29 +86,6 @@ func toDBItems(user onlyuser.User, changes []interface{}) ([]eventstore.DBEventI
 	}
 
 	return items, nil
-}
-
-func loadEvents(dbEvents []eventstore.DBEventItem) ([]interface{}, int, error) {
-	var events []interface{}
-	for _, dbEvent := range dbEvents {
-		if dbEvent.Type == "UserCreated" {
-			var e onlyuser.UserCreated
-			err := json.Unmarshal([]byte(dbEvent.Data), &e)
-			if err != nil {
-				return nil, 0, err
-			}
-			events = append(events, e)
-		}
-		if dbEvent.Type == "UserEmailChanged" {
-			var e onlyuser.UserEmailChanged
-			err := json.Unmarshal([]byte(dbEvent.Data), &e)
-			if err != nil {
-				return nil, 0, err
-			}
-			events = append(events, e)
-		}
-	}
-	return events, dbEvents[len(dbEvents)-1].Version, nil
 }
 
 func toKey(user onlyuser.User, i int) eventstore.EventKey {

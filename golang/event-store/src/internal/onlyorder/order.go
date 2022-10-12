@@ -6,7 +6,7 @@ import (
 )
 
 type Order struct {
-	es.Entity
+	es.Entity   // base entity for event sourcing
 	OrderItems  []OrderItem
 	TotalAmount int
 }
@@ -34,6 +34,7 @@ func NewOrder() Order {
 }
 
 func (o *Order) AddItem(item OrderItem) {
+	// validateOrderItem
 	o.Apply(o, ItemAdded{
 		OrderID: o.ID,
 		Item:    item,
