@@ -64,7 +64,7 @@ func (o *Order) AddItem(item OrderItem) {
 	})
 }
 
-func (o *Order) When2(event eventstore.DBEventItem) error {
+func (o *Order) When(event eventstore.DBEventItem) error {
 	switch event.Type {
 	case "OrderCreated":
 		v, err := NewOrderCreated(event.Data)
@@ -85,7 +85,7 @@ func (o *Order) When2(event eventstore.DBEventItem) error {
 	return nil
 }
 
-func (o *Order) When(event interface{}) {
+func (o *Order) When2(event interface{}) {
 	switch v := event.(type) {
 	case OrderCreated:
 		o.ID = v.OrderID

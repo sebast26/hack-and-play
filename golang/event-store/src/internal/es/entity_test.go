@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"sgorecki.me/golang/event-store/src/internal/es"
+	eventstore "sgorecki.me/golang/event-store/src/internal/es/dynamo"
 )
 
 type EntityA struct {
@@ -17,11 +18,11 @@ type EntityB struct {
 	content string
 }
 
-func (a *EntityA) When(event interface{}) {
+func (a *EntityA) When(event eventstore.DBEventItem) {
 	a.content = "a when"
 }
 
-func (b *EntityB) When(event interface{}) {
+func (b *EntityB) When(event eventstore.DBEventItem) {
 	b.content = "b when"
 }
 
@@ -32,8 +33,8 @@ func TestEventSourcerEntity(t *testing.T) {
 		b := EntityB{}
 
 		// when
-		a.When("empty event")
-		b.When("empty event")
+		a.When(eventstore.DBEventItem{})
+		b.When(eventstore.DBEventItem{})
 
 		// then
 		assert.Equal(t, "a when", a.content)
@@ -46,8 +47,8 @@ func TestEventSourcerEntity(t *testing.T) {
 		b := EntityB{}
 
 		// when
-		a.Apply(&a, "some event")
-		b.Apply(&b, "some other event")
+		a.Apply(&a, eventstore.DBEventItem{})
+		b.Apply(&b, eventstore.DBEventItem{})
 
 		// then
 		assert.Equal(t, "a when", a.content)
@@ -59,9 +60,9 @@ func TestEventSourcerEntity(t *testing.T) {
 		a := EntityA{}
 
 		// when
-		a.Apply(&a, "version 0")
-		a.Apply(&a, "version 0")
-		a.Apply(&a, "version 0")
+		a.Apply(&a, eventstore.DBEventItem{EventKey: eventstore.EventKey{Version: 0}})
+		a.Apply(&a, eventstore.DBEventItem{EventKey: eventstore.EventKey{Version: 0}})
+		a.Apply(&a, eventstore.DBEventItem{EventKey: eventstore.EventKey{Version: 0}})
 
 		// then
 		assert.Equal(t, 0, a.Version)
