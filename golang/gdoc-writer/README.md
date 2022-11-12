@@ -1,5 +1,7 @@
 # gdoc-writer
 
+**Note:** this project is deprecated. Use [`txt2gdoc`](https://github.com/sebast26/txt2gdoc) instead.
+
 Program creates new Google Document with the content from STDIN.
 
 ## Usage
