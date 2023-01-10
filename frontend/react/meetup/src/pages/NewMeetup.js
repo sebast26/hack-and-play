@@ -1,6 +1,9 @@
 import NewMeetupForm from "../components/meetups/NewMeetupForm";
+import {useNavigate} from 'react-router-dom'
 
 function NewMeetupPage() {
+  const navigate = useNavigate()
+
   function addMeetupHandler(meetupDate) {
     fetch(
       'http://example.com',
@@ -11,7 +14,11 @@ function NewMeetupPage() {
           'Content-Type': 'application/json'
         }
       }
-    )
+    ).then(() => {
+      navigate("/", { replace: true });
+    }).catch(() => {
+      navigate("/", { replace: true });
+    })
 
 
   }
