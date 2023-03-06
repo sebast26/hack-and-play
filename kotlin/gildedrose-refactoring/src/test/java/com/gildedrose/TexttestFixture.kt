@@ -1,16 +1,11 @@
 package com.gildedrose
 
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
 
 class TexttestFixture {
     @Test
     fun test() {
-        val outputStream = ByteArrayOutputStream()
-        val out = PrintStream(outputStream)
-        out.println("OMGHAI!")
         val items = listOf(
             Item("+5 Dexterity Vest", 10, 20),  //
             Brie("Aged Brie", 2, 0),  //
@@ -22,22 +17,18 @@ class TexttestFixture {
             Pass("Backstage passes to a TAFKAL80ETC concert", 5, 49),  // this conjured item does not work properly yet
             Conjured("Conjured Mana Cake", 3, 6)
         )
-        val days = 10
 
+        val days = 10
         val apps = generateSequence(GildedRose(items)) { it.updated() }
-        apps.take(days).forEachIndexed { i, app ->
-            out.println("-------- day $i --------")
-            out.println("name, sellIn, quality")
-            for (item in app.items) {
-                out.println(item)
-            }
-            out.println()
+        val lines = apps.take(days).flatMapIndexed { i, app ->
+            listOf("-------- day $i --------") +
+                    "name, sellIn, quality" +
+                    app.items.map { it.toString() } + ""
         }
-        Assertions.assertEquals(expected, outputStream.toString())
+        assertEquals(expected, lines.joinToString("\n"))
     }
 
-    private val expected = "OMGHAI!\n" +
-            "-------- day 0 --------\n" +
+    private val expected = "-------- day 0 --------\n" +
             "name, sellIn, quality\n" +
             "+5 Dexterity Vest, 10, 20\n" +
             "Aged Brie, 2, 0\n" +
@@ -155,6 +146,5 @@ class TexttestFixture {
             "Backstage passes to a TAFKAL80ETC concert, 6, 33\n" +
             "Backstage passes to a TAFKAL80ETC concert, 1, 50\n" +
             "Backstage passes to a TAFKAL80ETC concert, -4, 0\n" +
-            "Conjured Mana Cake, -6, 0\n" +
-            "\n"
+            "Conjured Mana Cake, -6, 0\n"
 }
