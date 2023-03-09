@@ -6,8 +6,6 @@ import java.time.LocalDate
 
 class StockTests {
 
-    private val sellBy = LocalDate.parse("2023-03-09")
-
     @Test
     fun `add item to stock`() {
         val stock = listOf<Item>()
@@ -16,10 +14,12 @@ class StockTests {
             stock
         )
 
-        val newStock = stock + Item("banana", sellBy, 42u)
+        val newStock = stock + Item("banana", mar03, 42u)
         assertEquals(
-            listOf(Item("banana", sellBy, 42u)),
+            listOf(Item("banana", mar03, 42u)),
             newStock
         )
     }
 }
+
+val mar03 = LocalDate.parse("2023-03-09")
