@@ -17,17 +17,10 @@ import java.time.temporal.ChronoUnit
 
 val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("d LLLL yyyy")
 
-
-class Server(stock: List<Item>, clock: () -> LocalDate = LocalDate::now) {
-    fun start() {
-        val http4kServer = routes.asServer(Undertow(8080))
-        http4kServer.start()
-    }
-
-    private val handlebars = Handlebars()
-    private val rootTemplate: Template = handlebars.compile(
-        StringTemplateSource("no such file", templateSource)
-    )
+class Server(
+    stock: List<Item>,
+    clock: () -> LocalDate = LocalDate::now
+) {
     val routes = routes(
         "/" bind Method.GET to { _ ->
             val now = clock()
@@ -39,6 +32,16 @@ class Server(stock: List<Item>, clock: () -> LocalDate = LocalDate::now) {
             ))
         }
     )
+
+    private val handlebars = Handlebars()
+    private val rootTemplate: Template = handlebars.compile(
+        StringTemplateSource("no such file", templateSource)
+    )
+
+    fun start() {
+        val http4kServer = routes.asServer(Undertow(8080))
+        http4kServer.start()
+    }
 }
 
 private fun Item.toMap(now: LocalDate): Map<String, String> = mapOf(
