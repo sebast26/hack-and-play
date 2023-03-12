@@ -27,6 +27,13 @@ val expected = """
     <html lang="en">
     <body>
     <table>
+    <h1>9 March 2023</h1>
+    <tr>
+        <th>Name</th>
+        <th>Sell By Date</th>
+        <th>Sell By Days</th>
+        <th>Quality</th>
+    </tr>
     <tr>
         <td>banana</td>
         <td>8 March 2023</td>

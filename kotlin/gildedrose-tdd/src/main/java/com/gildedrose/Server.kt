@@ -1,6 +1,7 @@
 package com.gildedrose
 
 import com.github.jknack.handlebars.Handlebars
+import com.github.jknack.handlebars.Template
 import com.github.jknack.handlebars.io.StringTemplateSource
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -11,7 +12,11 @@ import org.http4k.server.Undertow
 import org.http4k.server.asServer
 import org.intellij.lang.annotations.Language
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+
+val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("d LLLL yyyy")
+
 
 class Server(stock: List<Item>, clock: () -> LocalDate = LocalDate::now) {
     fun start() {
@@ -19,15 +24,18 @@ class Server(stock: List<Item>, clock: () -> LocalDate = LocalDate::now) {
         http4kServer.start()
     }
 
-    val handlebars = Handlebars()
-    val rootTemplate = handlebars.compile(
+    private val handlebars = Handlebars()
+    private val rootTemplate: Template = handlebars.compile(
         StringTemplateSource("no such file", templateSource)
     )
     val routes = routes(
         "/" bind Method.GET to { _ ->
             val now = clock()
             Response(Status.OK).body(rootTemplate.apply(
-                stock.map { it.toMap(now) }
+                mapOf(
+                    "now" to dateFormat.format(now),
+                    "items" to stock.map { it.toMap(now) }
+                )
             ))
         }
     )
@@ -45,7 +53,14 @@ private val templateSource = """
     <html lang="en">
     <body>
     <table>
-    {{#each}}<tr>
+    <h1>{{this.now}}</h1>
+    <tr>
+        <th>Name</th>
+        <th>Sell By Date</th>
+        <th>Sell By Days</th>
+        <th>Quality</th>
+    </tr>
+    {{#each this.items}}<tr>
         <td>{{this.name}}</td>
         <td>{{this.sellByDate}}</td>
         <td>{{this.sellByDays}}</td>

@@ -22,4 +22,4 @@ class StockTests {
     }
 }
 
-val mar03 = LocalDate.parse("2023-03-09")
+val mar03: LocalDate = LocalDate.parse("2023-03-09")
