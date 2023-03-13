@@ -1,6 +1,7 @@
 package com.gildedrose
 
 import org.http4k.core.Method
+import org.http4k.core.Request
 import org.http4k.core.Status
 import org.http4k.testing.ApprovalTest
 import org.http4k.testing.Approver
@@ -19,9 +20,8 @@ class ListStockTests {
             Item("banana", now.minusDays(1), 42u),
             Item("kumquat", now.plusDays(1), 101u)
         )
-        val server = Server(stock) { now }
-        val client = server.routes
-        val response = client(org.http4k.core.Request(Method.GET, "/"))
+        val routes = routes(stock) { now }
+        val response = routes(Request(Method.GET, "/"))
         approver.assertApproved(response, Status.OK)
     }
 }
