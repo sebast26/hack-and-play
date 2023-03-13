@@ -1,16 +1,20 @@
 package com.gildedrose
 
 import org.http4k.core.Method
-import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.http4k.core.Status
+import org.http4k.testing.ApprovalTest
+import org.http4k.testing.Approver
+import org.http4k.testing.assertApproved
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import java.time.LocalDate
 
+@ExtendWith(ApprovalTest::class)
 class ListStockTests {
     private val now = LocalDate.parse("2023-03-09")
 
     @Test
-    fun `list stock`() {
+    fun `list stock`(approver: Approver) {
         val stock = listOf(
             Item("banana", now.minusDays(1), 42u),
             Item("kumquat", now.plusDays(1), 101u)
@@ -18,37 +22,6 @@ class ListStockTests {
         val server = Server(stock) { now }
         val client = server.routes
         val response = client(org.http4k.core.Request(Method.GET, "/"))
-        assertEquals(expected, response.bodyString())
+        approver.assertApproved(response, Status.OK)
     }
 }
-
-@Language("HTML")
-val expected = """
-    <html lang="en">
-    <body>
-    <table>
-    <h1>9 March 2023</h1>
-    <tr>
-        <th>Name</th>
-        <th>Sell By Date</th>
-        <th>Sell By Days</th>
-        <th>Quality</th>
-    </tr>
-    <tr>
-        <td>banana</td>
-        <td>8 March 2023</td>
-        <td>-1</td>
-        <td>42</td>
-    </tr>
-    <tr>
-        <td>kumquat</td>
-        <td>10 March 2023</td>
-        <td>1</td>
-        <td>101</td>
-    </tr>
-    
-    </table>
-    </body>
-    </html>
-""".trimIndent()
-
