@@ -17,14 +17,14 @@ class ListStockTests {
 
     @Test
     fun `list stock`(approver: Approver) {
-        with(Fixture(standardStockList)) {
+        with(Fixture(standardStockList, now = Instant.parse("2023-03-09T12:00:00Z"))) {
             approver.assertApproved(routes(Request(Method.GET, "/")), Status.OK)
         }
     }
 
     @Test
     fun `list stock sees file updates`(approver: Approver) {
-        with(Fixture(standardStockList)) {
+        with(Fixture(standardStockList, now = Instant.parse("2023-03-09T12:00:00Z"))) {
             assertEquals(OK, routes(Request(Method.GET, "/")).status)
 
             save(StockList(Instant.now(), emptyList()))

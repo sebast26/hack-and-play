@@ -5,7 +5,6 @@ import org.http4k.core.Request
 import org.http4k.core.Status
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -16,17 +15,16 @@ class UpdateStockTest {
 
     @Test
     fun `doesn't update when lastModified in today`() {
-        val sameDayAsLastModified = LocalDate.parse("2023-03-25")
+        val sameDayAsLastModified = Instant.parse("2023-03-25T23:59:59Z")
         with(Fixture(standardStockList, now = sameDayAsLastModified)) {
             assertEquals(Status.OK, routes(Request(Method.GET, "/")).status)
             assertEquals(stockList, load())
         }
     }
 
-    @Disabled("WIP")
     @Test
     fun `does update when lastModified was yesterday`() {
-        val nextDayFromLastModified = LocalDate.parse("2023-03-26")
+        val nextDayFromLastModified = Instant.parse("2023-03-26T00:00:01Z")
         with(Fixture(standardStockList, now = nextDayFromLastModified)) {
             assertEquals(Status.OK, routes(Request(Method.GET, "/")).status)
             assertNotEquals(stockList, load())
