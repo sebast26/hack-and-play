@@ -3,7 +3,6 @@ import com.gildedrose.loadItems
 import com.gildedrose.routes
 import com.gildedrose.saveTo
 import java.io.File
-import java.time.Instant
 
 fun main() {
     val file = File("stock.tsv").also { it.createNewFile() }
