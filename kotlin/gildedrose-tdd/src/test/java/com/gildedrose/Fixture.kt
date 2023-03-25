@@ -8,7 +8,7 @@ import java.time.LocalDate
 class Fixture(
     initialStockList: StockList,
     val now: LocalDate = mar03,
-    private val stockFile: File = Files.createTempFile("stock", ".tsv").toFile()
+    val stockFile: File = Files.createTempFile("stock", ".tsv").toFile()
 ) {
     init {
         save(initialStockList)
