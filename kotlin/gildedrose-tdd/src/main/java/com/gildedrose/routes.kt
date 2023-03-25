@@ -14,15 +14,16 @@ private val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("d LLLL 
 private val handlebars = HandlebarsTemplates().HotReload("src/main/java")
 
 fun routes(
-    stock: List<Item>,
+    stock: () -> StockList,
     calendar: () -> LocalDate = LocalDate::now
 ) = org.http4k.routing.routes(
     "/" bind Method.GET to { _ ->
         val now = calendar()
+        val stockList = stock()
         Response(Status.OK).body(handlebars(
             StockListViewModel(
                 now = dateFormat.format(now),
-                items = stock.map { it.toMap(now) }
+                items = stockList.map { it.toMap(now) }
             )
         ))
     }
