@@ -13,8 +13,8 @@ class StockTests {
     private val initialStockList = StockList(
         lastModified = Instant.parse("2023-03-24T23:59:59Z"),
         items = listOf(
-            Item("banana", mar03.minusDays(1), 42u),
-            Item("kumquat", mar03.plusDays(1), 101u)
+            Item("banana", mar03.minusDays(1), 42),
+            Item("kumquat", mar03.plusDays(1), 101)
         )
     )
     private val fixture = Fixture(initialStockList, now = initialStockList.lastModified)
@@ -36,8 +36,8 @@ class StockTests {
         val expectedUpdateResult = StockList(
             lastModified = now,
             items = listOf(
-                Item("banana", mar03.minusDays(1), 41u),
-                Item("kumquat", mar03.plusDays(1), 100u)
+                Item("banana", mar03.minusDays(1), 41),
+                Item("kumquat", mar03.plusDays(1), 100)
             )
         )
         assertEquals(expectedUpdateResult, stock.stockList(now))
@@ -50,8 +50,8 @@ class StockTests {
         val expectedUpdateResult = StockList(
             lastModified = now,
             items = listOf(
-                Item("banana", mar03.minusDays(1), 40u),
-                Item("kumquat", mar03.plusDays(1), 99u)
+                Item("banana", mar03.minusDays(1), 40),
+                Item("kumquat", mar03.plusDays(1), 99)
             )
         )
         assertEquals(expectedUpdateResult, stock.stockList(now))
@@ -89,4 +89,4 @@ class StockTests {
     }
 }
 
-private fun updateItems(items: List<Item>, days: Int) = items.map { it.copy(quality = it.quality - days.toUInt()) }
+private fun updateItems(items: List<Item>, days: Int) = items.map { it.copy(quality = it.quality - days) }
