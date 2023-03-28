@@ -12,13 +12,13 @@
         <td>banana</td>
         <td>8 March 2023</td>
         <td style="text-align: right">-18</td>
-        <td style="text-align: right">41</td>
+        <td style="text-align: right">40</td>
     </tr>
     <tr>
         <td>kumquat</td>
         <td>10 March 2023</td>
         <td style="text-align: right">-16</td>
-        <td style="text-align: right">100</td>
+        <td style="text-align: right">99</td>
     </tr>
     
     </table>

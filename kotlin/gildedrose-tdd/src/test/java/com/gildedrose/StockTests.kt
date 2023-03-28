@@ -3,6 +3,7 @@ package com.gildedrose
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.util.concurrent.Callable
 import java.util.concurrent.CyclicBarrier
@@ -21,7 +22,7 @@ class StockTests {
     private val stock = Stock(
         stockFile = fixture.stockFile,
         zoneID = ZoneId.of("Europe/London"),
-        update = ::updateItems
+        update = ::simpleUpdateItems
     )
 
     @Test
@@ -89,4 +90,4 @@ class StockTests {
     }
 }
 
-private fun updateItems(items: List<Item>, days: Int) = items.map { it.copy(quality = it.quality - days) }
+private fun simpleUpdateItems(items: List<Item>, days: Int, on: LocalDate) = items.map { it.copy(quality = it.quality - days) }
