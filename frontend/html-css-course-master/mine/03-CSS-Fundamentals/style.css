@@ -8,6 +8,11 @@ body {
   border-top: 10px solid #1098ad;
 }
 
+.container {
+  width: 800px;
+  margin: 0 auto;
+}
+
 nav {
   font-size: 10px;
 }
