@@ -3,7 +3,7 @@ package products
 import money.USD
 import kotlin.random.Random
 
-class ProductsManager {
+class NetworkProductsManager : ProductManager {
     private val products = listOf(
         Product(
             uid = nextUid(),
@@ -42,11 +42,11 @@ class ProductsManager {
         ),
     )
 
-    fun getAllProducts(): List<Product> {
+    override fun getAllProducts(): List<Product> {
         return products
     }
 
-    fun getProductById(id: String): Product? {
+    override fun getProductById(id: String): Product? {
         return getAllProducts().firstOrNull { it.uid == id }
     }
 }
