@@ -85,3 +85,9 @@ android {
         minSdk = 24
     }
 }
+
+sqldelight {
+    database("AppDatabase") {
+        packageName = "me.sgorecki.spacexlaunches.shared.cache"
+    }
+}
