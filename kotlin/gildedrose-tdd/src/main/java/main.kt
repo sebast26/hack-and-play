@@ -6,10 +6,12 @@ import com.gildedrose.Stock
 import com.gildedrose.listHandler
 import com.gildedrose.updateItems
 import org.http4k.core.HttpHandler
+import org.http4k.core.HttpTransaction
 import org.http4k.core.Method.GET
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.then
+import org.http4k.filter.ResponseFilters
 import org.http4k.filter.ServerFilters
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -39,12 +41,17 @@ fun routesFor(
     analytics: Analytics,
 ): HttpHandler {
     val stock = Stock(stockFile, londonZoneId, ::updateItems)
-    return catchAll(analytics).then(
-        routes(
-            "/" bind GET to listHandler(clock, londonZoneId, stock::stockList),
-            "/errors" bind GET to { error("deliberate") }
-        ))
+    return reportHttpTransactions(analytics).then(
+        catchAll(analytics).then(
+            routes(
+                "/" bind GET to listHandler(clock, londonZoneId, stock::stockList),
+                "/errors" bind GET to { error("deliberate") }
+            )))
 }
+
+private fun reportHttpTransactions(analytics: Analytics) = ResponseFilters.ReportHttpTransaction(
+    recordFn = { analytics(HttpEvent(it)) }
+)
 
 private fun catchAll(analytics: Analytics) = ServerFilters.CatchAll {
     analytics(UncaughtExceptionEvent(it))
@@ -58,5 +65,19 @@ data class UncaughtExceptionEvent(
     constructor(exception: Throwable) : this(
         exception.message.orEmpty(),
         exception.stackTrace.map(StackTraceElement::toString)
+    )
+}
+
+data class HttpEvent(
+    val uri: String,
+    val method: String,
+    val status: Int,
+    val latency: Long,
+) : AnalyticsEvent {
+    constructor(tx: HttpTransaction) : this(
+        tx.request.uri.toString(),
+        tx.request.method.toString(),
+        tx.response.status.code,
+        tx.duration.toMillis(),
     )
 }
