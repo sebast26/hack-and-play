@@ -1,10 +1,7 @@
 package com.gildedrose
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
+import org.http4k.filter.TraceId
+import org.http4k.filter.ZipkinTraces
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -20,14 +17,25 @@ class AnalyticsTests {
         )
 
         assertEquals(0, logged.size)
-        analytics(TestEvent("banana"))
-        assertEquals(
-            listOf("""{"timestamp":"2023-04-23T13:31:53.298304Z","event":{"value":"banana","eventName":"TestEvent"}}"""),
-            logged
-        )
+
+        withTraces(ZipkinTraces(TraceId("trace"), TraceId("span"), TraceId("parentSpan"))) {
+            analytics(TestEvent("banana"))
+            assertEquals(
+                listOf("""{"timestamp":"2023-04-23T13:31:53.298304Z","traceId":"trace","spanId":"span","parentSpanId":"parentSpan","event":{"value":"banana","eventName":"TestEvent"}}"""),
+                logged
+            )
+        }
     }
 }
 
 data class TestEvent(val value: String) : AnalyticsEvent
 
-
+private fun withTraces(traces: ZipkinTraces, f: () -> Unit) {
+    val oldTraces = ZipkinTraces.forCurrentThread()
+    ZipkinTraces.setForCurrentThread(traces)
+    try {
+        f()
+    } finally {
+        ZipkinTraces.setForCurrentThread(oldTraces)
+    }
+}

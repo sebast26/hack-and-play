@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
+import org.http4k.filter.ZipkinTraces
 import java.time.Instant
 
 @Suppress("unused")
@@ -20,12 +21,23 @@ class LoggingAnalytics(
     private val clock: () -> Instant = Instant::now
 ) : Analytics {
     override fun invoke(event: AnalyticsEvent) {
-        logger(objectMapper.writeValueAsString(Envelop(clock(), event)))
+        val traces = ZipkinTraces.forCurrentThread()
+        val envelop = Envelop(
+            clock(),
+            traces.traceId.value,
+            traces.spanId.value,
+            traces.parentSpanId?.value,
+            event
+        )
+        logger(objectMapper.writeValueAsString(envelop))
     }
 
     @Suppress("unused")
     class Envelop(
         val timestamp: Instant,
+        val traceId: String,
+        val spanId: String,
+        val parentSpanId: String?,
         val event: AnalyticsEvent
     )
 

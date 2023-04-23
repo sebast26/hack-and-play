@@ -13,6 +13,7 @@ import org.http4k.core.Status
 import org.http4k.core.then
 import org.http4k.filter.ResponseFilters
 import org.http4k.filter.ServerFilters
+import org.http4k.filter.ServerFilters.RequestTracing
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.io.File
@@ -41,12 +42,12 @@ fun routesFor(
     analytics: Analytics,
 ): HttpHandler {
     val stock = Stock(stockFile, londonZoneId, ::updateItems)
-    return reportHttpTransactions(analytics).then(
+    return RequestTracing().then(reportHttpTransactions(analytics).then(
         catchAll(analytics).then(
             routes(
                 "/" bind GET to listHandler(clock, londonZoneId, stock::stockList),
                 "/errors" bind GET to { error("deliberate") }
-            )))
+            ))))
 }
 
 private fun reportHttpTransactions(analytics: Analytics) = ResponseFilters.ReportHttpTransaction(
