@@ -1,10 +1,8 @@
 package com.gildedrose
 
 import org.http4k.core.HttpHandler
-import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
-import org.http4k.routing.bind
 import org.http4k.template.HandlebarsTemplates
 import org.http4k.template.ViewModel
 import java.time.Instant
@@ -39,10 +37,11 @@ private data class StockListViewModel(
 
 private fun Item.toMap(now: LocalDate): Map<String, String> = mapOf(
     "name" to name,
-    "sellByDate" to dateFormat.format(sellByDate),
+    "sellByDate" to if (sellByDate == null) "" else dateFormat.format(sellByDate),
     "sellByDays" to this.daysUntilSellBy(now).toString(),
     "quality" to this.quality.toString()
 )
 
 private fun Item.daysUntilSellBy(now: LocalDate): Long =
-    ChronoUnit.DAYS.between(now, sellByDate)
+    if (sellByDate == null) 0 else
+        ChronoUnit.DAYS.between(now, sellByDate)

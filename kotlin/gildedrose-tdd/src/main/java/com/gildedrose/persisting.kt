@@ -29,7 +29,7 @@ fun Sequence<String>.toStockList(): StockList {
     )
 }
 
-private fun Item.toLine() = "$name\t$sellByDate\t$quality"
+private fun Item.toLine() = "$name\t${sellByDate ?: ""}\t$quality"
 
 private fun lastModifiedFrom(
     header: List<String>,
@@ -49,8 +49,10 @@ private fun String.toItem(): Item {
     val parts: List<String> = this.split('\t')
     return Item(
         name = parts[0],
-        sellByDate = LocalDate.parse(parts[1]),
+        sellByDate = parts[1].toLocalDate(),
         quality = parts[2].toInt()
     )
 }
+
+private fun String.toLocalDate() = if (this.isBlank()) null else LocalDate.parse(this)
 
