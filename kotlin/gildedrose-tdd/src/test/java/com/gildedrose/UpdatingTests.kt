@@ -56,4 +56,29 @@ class UpdatingTests {
             Item("banana", null, 42).updatedBy(days = 1, on = mar03)
         )
     }
+
+    @Test fun `Aged Brie increases in quality by one every day until its sell by date`() {
+        assertEquals(
+            Item("Aged Brie", mar03, 43),
+            Item("Aged Brie", mar03, 42).updatedBy(days = 1, on = mar03)
+        )
+    }
+
+    @Test fun `Aged Brie increases in quality by two every day after its sell by date`() {
+        assertEquals(
+            Item("Aged Brie", mar03, 44),
+            Item("Aged Brie", mar03, 42).updatedBy(days = 1, on = mar03.plusDays(1))
+        )
+    }
+
+    @Test fun `Aged Brie doesn't get better than 50`() {
+        assertEquals(
+            Item("Aged Brie", mar03, 50),
+            Item("Aged Brie", mar03, 50).updatedBy(days = 1, on = mar03)
+        )
+        assertEquals(
+            Item("Aged Brie", mar03, 50),
+            Item("Aged Brie", mar03, 49).updatedBy(days = 1, on = mar03.plusDays(1))
+        )
+    }
 }
