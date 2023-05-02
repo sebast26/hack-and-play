@@ -63,21 +63,38 @@
         /* gap: 30px; */
         column-gap: 20px;
         row-gap: 40px;
+
+        display: none;
       }
 
       .container--2 {
-        display: none;
-
         /* STARTER */
         font-family: sans-serif;
         background-color: black;
         font-size: 40px;
-        margin: 100px;
+        margin: 40px;
 
-        width: 1000px;
+        width: 700px;
         height: 600px;
 
         /* CSS GRID */
+        display: grid;
+        gap: 50px;
+        grid-template-columns: 125px 250px 125px;
+        grid-template-rows: 250px 100px;
+
+        /* aligning tracks inside container */
+        justify-content: center;
+        align-content: center;
+
+        /* aligning items INSIDE cells */
+        align-items: center;
+        justify-items: center;
+      }
+
+      .el--3 {
+        align-self: end;
+        justify-self: center;
       }
     </style>
   </head>
