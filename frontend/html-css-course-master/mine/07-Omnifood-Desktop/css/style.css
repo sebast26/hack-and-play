@@ -120,6 +120,29 @@ body {
 /***********/
 /* Header */
 /***********/
+.container {
+    max-width: 120rem;
+    margin: 0 auto;
+    padding: 0 3.2rem;
+}
+
+.grid {
+    display: grid;
+    gap: 9.6rem;
+}
+
+.grid--2-cols {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid--3-cols {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.grid--4-cols {
+    grid-template-columns: repeat(4, 1fr);
+}
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -174,6 +197,7 @@ body {
 .main-nav-link.nav-cta:active {
     background-color: #cf711f;
 }
+
 /***********/
 /* Hero */
 /***********/
@@ -234,4 +258,13 @@ body {
 .delivered-text span {
     color: #cf711f;
     font-weight: 700;
+}
+
+/***********/
+/* How it work section */
+/***********/
+
+.section-how {
+    padding: 9.6rem 0;
+    background-color: orangered;
 }
