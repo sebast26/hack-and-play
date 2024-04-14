@@ -1,0 +1,149 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "android-tools@34.0.5": {
+      "last_modified": "2024-04-02T02:53:36Z",
+      "resolved": "github:NixOS/nixpkgs/080a4a27f206d07724b88da096e27ef63401a504#android-tools",
+      "source": "devbox-search",
+      "version": "34.0.5",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2a9zljbz0g36sb7frdap86ygbzsnjg9m-android-tools-34.0.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/2a9zljbz0g36sb7frdap86ygbzsnjg9m-android-tools-34.0.5"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/yaavn3zqx0gj2vy1x7b4ip1in59wv53p-android-tools-34.0.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/yaavn3zqx0gj2vy1x7b4ip1in59wv53p-android-tools-34.0.5"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/4bq88shzlar75ibnvzs66jkc0j87agd0-android-tools-34.0.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/4bq88shzlar75ibnvzs66jkc0j87agd0-android-tools-34.0.5"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/m6hsy5jnb5i4ivaazd5qvvh6b6cxa515-android-tools-34.0.5",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/m6hsy5jnb5i4ivaazd5qvvh6b6cxa515-android-tools-34.0.5"
+        }
+      }
+    },
+    "flutter@latest": {
+      "last_modified": "2024-03-25T12:46:37Z",
+      "resolved": "github:NixOS/nixpkgs/c726225724e681b3626acc941c6f95d2b0602087#flutter",
+      "source": "devbox-search",
+      "version": "3.19.0-sdk-links",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/nmxjarw7ia56gb42zwgjd4y5485ja097-flutter-wrapped-3.19.0-sdk-links",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/nmxjarw7ia56gb42zwgjd4y5485ja097-flutter-wrapped-3.19.0-sdk-links"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/hvn51hw7s78askp4q37i6hm8sk31kx1z-flutter-wrapped-3.19.0-sdk-links",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/hvn51hw7s78askp4q37i6hm8sk31kx1z-flutter-wrapped-3.19.0-sdk-links"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/fn9pkc7w9ckcb5ayr47993k1sr91hp7d-flutter-wrapped-3.19.0-sdk-links",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/fn9pkc7w9ckcb5ayr47993k1sr91hp7d-flutter-wrapped-3.19.0-sdk-links"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/wkaqj97xj7glb0a0za3iplwcj95jm6mj-flutter-wrapped-3.19.0-sdk-links",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/wkaqj97xj7glb0a0za3iplwcj95jm6mj-flutter-wrapped-3.19.0-sdk-links"
+        }
+      }
+    },
+    "xcode-install@latest": {
+      "last_modified": "2024-03-25T21:25:22Z",
+      "resolved": "github:NixOS/nixpkgs/07262b18b97000d16a4bdb003418bd2fb067a932#xcode-install",
+      "source": "devbox-search",
+      "version": "2.6.8",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/hrxj8khrhhq1xr6kml7v57rw2d8qnisn-xcode-install-2.6.8",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/hrxj8khrhhq1xr6kml7v57rw2d8qnisn-xcode-install-2.6.8"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/q833nv95f9sjr9d5sx114xhdsy8l6jwk-xcode-install-2.6.8",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/q833nv95f9sjr9d5sx114xhdsy8l6jwk-xcode-install-2.6.8"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/6z60x22ffbip4m963ain1qwxi47j2frb-xcode-install-2.6.8",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/6z60x22ffbip4m963ain1qwxi47j2frb-xcode-install-2.6.8"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/pzv5hrv3js5jn1m83mw1ymdvs409p44c-xcode-install-2.6.8",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/pzv5hrv3js5jn1m83mw1ymdvs409p44c-xcode-install-2.6.8"
+        }
+      }
+    }
+  }
+}
