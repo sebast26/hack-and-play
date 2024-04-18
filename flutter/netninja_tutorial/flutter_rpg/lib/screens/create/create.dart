@@ -48,71 +48,73 @@ class _CreateState extends State<Create> {
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-        child: Column(
-          children: [
-
-            // welcome message
-            Center(
-              child: Icon(Icons.code, color: AppColors.primaryColor,),
-            ),
-            const Center(
-              child: StyledHeading('Welcome, new player.'),
-            ),
-            const Center(
-              child: StyledText('Create a name & slogan for your character.'),
-            ),
-            const SizedBox(height: 30,),
-
-            // input for name and slogan
-            TextField(
-              controller: _nameController,
-              style: GoogleFonts.kanit(
-               textStyle: Theme.of(context).textTheme.bodyMedium,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+          
+              // welcome message
+              Center(
+                child: Icon(Icons.code, color: AppColors.primaryColor,),
               ),
-              cursorColor: AppColors.textColor,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.person_2),
-                label: StyledText('Character name')
+              const Center(
+                child: StyledHeading('Welcome, new player.'),
               ),
-            ),
-            const SizedBox(height: 20,),
-            TextField(
-              controller: _sloganController,
-              style: GoogleFonts.kanit(
-                textStyle: Theme.of(context).textTheme.bodyMedium,
+              const Center(
+                child: StyledText('Create a name & slogan for your character.'),
               ),
-              cursorColor: AppColors.textColor,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.chat),
-                label: StyledText('Character slogan')
+              const SizedBox(height: 30,),
+          
+              // input for name and slogan
+              TextField(
+                controller: _nameController,
+                style: GoogleFonts.kanit(
+                 textStyle: Theme.of(context).textTheme.bodyMedium,
+                ),
+                cursorColor: AppColors.textColor,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.person_2),
+                  label: StyledText('Character name')
+                ),
               ),
-            ),
-            const SizedBox(height: 30,),
-
-            // select vocation 
-            Center(
-              child: Icon(Icons.code, color: AppColors.primaryColor,),
-            ),
-            const Center(
-              child: StyledHeading('Choose a vocation.'),
-            ),
-            const Center(
-              child: StyledText('This determines your available skills.'),
-            ),
-            const SizedBox(height: 30,),
-
-            const VocationCard(vocation: Vocation.junkie),
-            const VocationCard(vocation: Vocation.ninja),
-            const VocationCard(vocation: Vocation.raider),
-            const VocationCard(vocation: Vocation.wizard),
-
-            Center(
-              child: StyledButton(
-                onPressed: handleSubmit,
-                child: const StyledHeading('Create Character'),
+              const SizedBox(height: 20,),
+              TextField(
+                controller: _sloganController,
+                style: GoogleFonts.kanit(
+                  textStyle: Theme.of(context).textTheme.bodyMedium,
+                ),
+                cursorColor: AppColors.textColor,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.chat),
+                  label: StyledText('Character slogan')
+                ),
               ),
-            )
-          ],
+              const SizedBox(height: 30,),
+          
+              // select vocation 
+              Center(
+                child: Icon(Icons.code, color: AppColors.primaryColor,),
+              ),
+              const Center(
+                child: StyledHeading('Choose a vocation.'),
+              ),
+              const Center(
+                child: StyledText('This determines your available skills.'),
+              ),
+              const SizedBox(height: 30,),
+          
+              const VocationCard(vocation: Vocation.junkie),
+              const VocationCard(vocation: Vocation.ninja),
+              const VocationCard(vocation: Vocation.raider),
+              const VocationCard(vocation: Vocation.wizard),
+          
+              Center(
+                child: StyledButton(
+                  onPressed: handleSubmit,
+                  child: const StyledHeading('Create Character'),
+                ),
+              )
+            ],
+          ),
         ),
       )
     );
