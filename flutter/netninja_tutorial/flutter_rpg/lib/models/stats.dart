@@ -23,7 +23,7 @@ mixin Stats {
 
 
   void increaseStat(String stat) {
-    if (_points > 10) {
+    if (_points > 0) {
       if (stat == 'health') {
         _health++;
         _points--;
