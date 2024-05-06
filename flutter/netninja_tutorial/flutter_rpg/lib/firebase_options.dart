@@ -65,4 +65,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'flutter-rpg-f5b19.appspot.com',
     iosBundleId: 'com.example.flutterRpg',
   );
+
 }
