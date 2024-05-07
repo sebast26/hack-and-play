@@ -53,7 +53,7 @@ class Character with Stats{
     Character character = Character(
       name: data["name"], 
       slogan: data["slogan"], 
-      id: data["id"],
+      id: snapshot.id,
       vocation: Vocation.values.firstWhere((v) => v.toString() == data["vocation"])
     );
 
