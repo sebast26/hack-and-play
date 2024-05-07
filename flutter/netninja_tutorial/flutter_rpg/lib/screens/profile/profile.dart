@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_rpg/models/character.dart';
 import 'package:flutter_rpg/screens/profile/skills_list.dart';
 import 'package:flutter_rpg/screens/profile/stats_table.dart';
@@ -33,9 +34,12 @@ class Profile extends StatelessWidget {
               color: AppColors.secondaryColor.withOpacity(0.3),
               child: Row(
                 children: [
-                  Image.asset('assets/img/vocations/${character.vocation.image}',
-                    width: 140,
-                    height: 140,
+                  Hero(
+                    tag: character.id.toString(),
+                    child: Image.asset('assets/img/vocations/${character.vocation.image}',
+                      width: 140,
+                      height: 140,
+                    ),
                   ),
 
                   const SizedBox(width: 20,),
