@@ -101,7 +101,7 @@ func createLogger() *zap.Logger {
 	encoderCfg.TimeKey = "timestamp"
 	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 
-	secureEncoder := NewSensitiveFieldsEncoder(encoderCfg)
+	_ = NewSensitiveFieldsEncoder(encoderCfg)
 
 	config := zap.Config{
 		Level:             zap.NewAtomicLevelAt(zap.InfoLevel),
