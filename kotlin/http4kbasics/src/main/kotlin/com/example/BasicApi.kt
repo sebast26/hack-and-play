@@ -15,12 +15,13 @@ import org.http4k.server.asServer
 
 data class Greeting(val message: String)
 
+val greetingLens = Body.auto<Greeting>().toLens()
+
 val helloApi: HttpHandler = routes(
     "/hello/{name}" bind Method.GET to { req ->
         val name = req.path("name")
         val greeting = Greeting("hello $name")
-        val lens = Body.auto<Greeting>().toLens()
-        Response(OK).with(lens of greeting)
+        Response(OK).with(greetingLens of greeting)
     }
 )
 
