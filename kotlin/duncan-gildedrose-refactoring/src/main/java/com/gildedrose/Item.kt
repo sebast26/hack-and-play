@@ -1,11 +1,19 @@
 package com.gildedrose
 
-open class Item(
+class Item(
     val name: String,
     var sellIn: Int = 0,
-    var quality: Int = 0
+    var quality: Int = 0,
+    private val aging: () -> Int = Aging.standard,
+    private val degradation: (Int, Int) -> Int = Degradation.standard,
+    private val saturation: (Int) -> Int = Saturation.standard
 ) {
     override fun toString() = "$name, $sellIn, $quality"
+
+    fun update() {
+        sellIn = sellIn - aging()
+        quality = saturation(quality - degradation(sellIn, quality))
+    }
 }
 
 object Aging {
@@ -34,29 +42,14 @@ object Saturation {
     val none: (Int) -> Int = { it }
 }
 
-class BaseItem(
-    name: String,
-    sellIn: Int,
-    quality: Int,
-    private val aging: () -> Int = Aging.standard,
-    private val degradation: (Int, Int) -> Int = Degradation.standard,
-    private val saturation: (Int) -> Int = Saturation.standard
-) : Item(name, sellIn, quality) {
-    fun update() {
-        sellIn = sellIn - aging()
-        quality = saturation(quality - degradation(sellIn, quality))
-    }
-
-}
-
-fun Brie(name: String, sellIn: Int, quality: Int) = BaseItem(
+fun Brie(name: String, sellIn: Int, quality: Int) = Item(
     name,
     sellIn,
     quality,
     degradation = Degradation.standard * -1
 )
 
-fun Pass(name: String, sellIn: Int, quality: Int) = BaseItem(
+fun Pass(name: String, sellIn: Int, quality: Int) = Item(
     name,
     sellIn,
     quality,
@@ -70,7 +63,7 @@ fun Pass(name: String, sellIn: Int, quality: Int) = BaseItem(
     }
 )
 
-fun Sulfuras(name: String, sellIn: Int, quality: Int) = BaseItem(
+fun Sulfuras(name: String, sellIn: Int, quality: Int) = Item(
     name,
     sellIn,
     quality,
@@ -79,7 +72,7 @@ fun Sulfuras(name: String, sellIn: Int, quality: Int) = BaseItem(
     saturation = Saturation.none
 )
 
-fun Conjured(name: String, sellIn: Int, quality: Int) = BaseItem(
+fun Conjured(name: String, sellIn: Int, quality: Int) = Item(
     name,
     sellIn,
     quality,

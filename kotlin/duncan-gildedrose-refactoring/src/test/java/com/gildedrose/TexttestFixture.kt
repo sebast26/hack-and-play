@@ -13,9 +13,9 @@ class TexttestFixture {
         out.println("OMGHAI!")
 
         val items: Array<Item> = arrayOf(
-            BaseItem("+5 Dexterity Vest", 10, 20),  //
+            Item("+5 Dexterity Vest", 10, 20),  //
             Brie("Aged Brie", 2, 0),  //
-            BaseItem("Elixir of the Mongoose", 5, 7),  //
+            Item("Elixir of the Mongoose", 5, 7),  //
             Sulfuras("Sulfuras, Hand of Ragnaros", 0, 80),  //
             Sulfuras("Sulfuras, Hand of Ragnaros", -1, 80),
             Pass("Backstage passes to a TAFKAL80ETC concert", 15, 20),
