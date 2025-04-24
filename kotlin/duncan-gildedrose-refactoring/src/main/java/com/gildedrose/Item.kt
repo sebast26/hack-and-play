@@ -10,52 +10,43 @@ open class Item(
 
 open class BaseItem(name: String, sellIn: Int, quality: Int) : Item(name, sellIn, quality) {
     fun update() {
-        age()
-        degrade()
-        saturate()
+        sellIn = sellIn - aging()
+        quality = saturation(degradation(sellIn, quality))
     }
 
-    protected open fun age() {
-        sellIn = sellIn - 1
+    protected open fun aging(): Int = 1
+
+    protected open fun degradation(sellIn: Int, quality: Int) = when {
+        sellIn < 0 -> quality - 2
+        else -> quality - 1
     }
 
-    protected open fun degrade() {
-        if (sellIn < 0)
-            quality = quality - 2
-        else
-            quality = quality - 1
-    }
-
-    protected open fun saturate() {
-        when {
-            quality < 0 -> quality = 0
-            quality > 50 -> quality = 50
-        }
+    protected open fun saturation(quality: Int) = when {
+        quality < 0 -> 0
+        quality > 50 -> 50
+        else -> quality
     }
 }
 
 class Brie(name: String, sellIn: Int, quality: Int) : BaseItem(name, sellIn, quality) {
-    override fun degrade() {
-        if (sellIn < 0)
-            quality = quality + 2
-        else
-            quality = quality + 1
+    override fun degradation(sellIn: Int, quality: Int) = when {
+        sellIn < 0 -> quality + 2
+        else -> quality + 1
     }
 }
 
 class Pass(name: String, sellIn: Int, quality: Int) : BaseItem(name, sellIn, quality) {
-    override fun degrade() {
-        quality = when {
-            sellIn < 0 -> 0
-            sellIn < 5 -> quality + 3
-            sellIn < 10 -> quality + 2
-            else -> quality + 1
-        }
+    override fun degradation(sellIn: Int, quality: Int) = when {
+        sellIn < 0 -> 0
+        sellIn < 5 -> quality + 3
+        sellIn < 10 -> quality + 2
+        else -> quality + 1
+
     }
 }
 
 class Sulfuras(name: String, sellIn: Int, quality: Int) : BaseItem(name, sellIn, quality) {
-    override fun age() {}
-    override fun degrade() {}
-    override fun saturate() {}
+    override fun aging() = 0
+    override fun degradation(sellIn: Int, quality: Int) = quality
+    override fun saturation(quality: Int) = quality
 }
