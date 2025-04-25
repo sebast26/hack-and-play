@@ -25,12 +25,11 @@ class TexttestFixture {
         )
 
         val app = GildedRose(items)
-
         val days = 10
         for (i in 0..<days) {
             out.println("-------- day " + i + " --------")
             out.println("name, sellIn, quality")
-            for (item in items) {
+            for (item in app.items) {
                 out.println(item)
             }
             out.println()
