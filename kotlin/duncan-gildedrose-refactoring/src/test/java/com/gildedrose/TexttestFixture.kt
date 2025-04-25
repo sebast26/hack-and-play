@@ -1,6 +1,7 @@
 package com.gildedrose
 
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
@@ -24,7 +25,7 @@ class TexttestFixture {
             Conjured("Conjured Mana Cake", 3, 6)
         )
 
-        val app = GildedRose(items)
+        var app = GildedRose(items)
         val days = 10
         for (i in 0..<days) {
             out.println("-------- day " + i + " --------")
@@ -33,9 +34,9 @@ class TexttestFixture {
                 out.println(item)
             }
             out.println()
-            app.updateQuality()
+            app = app.updated()
         }
-        Assertions.assertEquals(expected, outputStream.toString())
+        assertEquals(expected, outputStream.toString())
     }
 
     companion object {
