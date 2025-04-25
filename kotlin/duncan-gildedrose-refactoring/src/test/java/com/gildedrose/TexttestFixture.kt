@@ -2,44 +2,35 @@ package com.gildedrose
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
 
 class TexttestFixture {
     @Test
     fun test() {
-        val outputStream = ByteArrayOutputStream()
-        val out = PrintStream(outputStream)
-        out.println("OMGHAI!")
-
         val items: List<Item> = listOf(
-            Item("+5 Dexterity Vest", 10, 20),  //
-            Brie("Aged Brie", 2, 0),  //
-            Item("Elixir of the Mongoose", 5, 7),  //
-            Sulfuras("Sulfuras, Hand of Ragnaros", 0, 80),  //
+            Item("+5 Dexterity Vest", 10, 20),
+            Brie("Aged Brie", 2, 0),
+            Item("Elixir of the Mongoose", 5, 7),
+            Sulfuras("Sulfuras, Hand of Ragnaros", 0, 80),
             Sulfuras("Sulfuras, Hand of Ragnaros", -1, 80),
             Pass("Backstage passes to a TAFKAL80ETC concert", 15, 20),
             Pass("Backstage passes to a TAFKAL80ETC concert", 10, 49),
-            Pass("Backstage passes to a TAFKAL80ETC concert", 5, 49),  // this conjured item does not work properly yet
+            Pass("Backstage passes to a TAFKAL80ETC concert", 5, 49),
             Conjured("Conjured Mana Cake", 3, 6)
         )
 
         val apps = generateSequence(GildedRose(items)) { it.updated() }
         val days = 10
-        apps.take(days).forEachIndexed { i, app ->
-            out.println("-------- day " + i + " --------")
-            out.println("name, sellIn, quality")
-            for (item in app.items) {
-                out.println(item)
-            }
-            out.println()
+        val lines = apps.take(days).flatMapIndexed { i, app ->
+            listOf("-------- day " + i + " --------") +
+                "name, sellIn, quality" +
+                app.items.map { it.toString() } +
+                ""
         }
-        assertEquals(expected, outputStream.toString())
+        assertEquals(expected, lines.joinToString("\n"))
     }
 
     companion object {
         private val expected = """
-            OMGHAI!
             -------- day 0 --------
             name, sellIn, quality
             +5 Dexterity Vest, 10, 20
@@ -159,7 +150,6 @@ class TexttestFixture {
             Backstage passes to a TAFKAL80ETC concert, 1, 50
             Backstage passes to a TAFKAL80ETC concert, -4, 0
             Conjured Mana Cake, -6, 0
-
 
         """.trimIndent()
     }
