@@ -40,7 +40,7 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         if (COMEDY == play.type) volumeCredits += floor(perf.audience.toDouble() / 5).toInt()
 
         // print line for this order
-        result += "\t${play.name}: ${format(thisAmount / 100)} (${perf.audience} seats)\n"
+        result += "    ${play.name}: ${format(thisAmount / 100)} (${perf.audience} seats)\n"
         totalAmount += thisAmount
     }
 

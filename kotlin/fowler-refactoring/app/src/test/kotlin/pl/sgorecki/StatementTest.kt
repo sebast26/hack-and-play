@@ -1,11 +1,12 @@
 package pl.sgorecki
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class StatementTest {
     @Test
-    fun appHasAGreeting() {
-        println(statement(invoices[0], plays))
+    fun correctStatement() {
+        assertEquals(expected, statement(invoices[0], plays))
     }
 }
 
@@ -16,4 +17,5 @@ private val expected = """
         Othello: $500.00 (40 seats)
     Amount owed is $1,730.00
     You earned 47 credits
+    
 """.trimIndent()
