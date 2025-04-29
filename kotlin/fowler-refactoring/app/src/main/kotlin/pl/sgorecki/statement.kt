@@ -15,6 +15,7 @@ data class EnrichedPerformance(
     val performance: Performance,
     val play: Play,
     val amount: Int,
+    val volumeCredits: Int
 )
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
@@ -43,10 +44,18 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         return result
     }
 
+    fun volumeCreditsFor(performance: Performance): Int {
+        var result = 0
+        result += max(performance.audience - 30, 0)
+        if (COMEDY == playFor(performance).type) result += floor(performance.audience.toDouble() / 5).toInt()
+        return result
+    }
+
     fun enrichPerformance(performance: Performance) = EnrichedPerformance(
         performance = performance,
         play = playFor(performance),
-        amount = amountFor(performance)
+        amount = amountFor(performance),
+        volumeCredits = volumeCreditsFor(performance),
     )
 
     val statementData = StatementData(
@@ -58,15 +67,6 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
 }
 
 fun renderPlainText(data: StatementData, plays: Map<String, Play>): String {
-    fun playFor(performance: Performance): Play = plays[performance.playId]!!
-
-    fun volumeCreditsFor(performance: EnrichedPerformance): Int {
-        var result = 0
-        result += max(performance.performance.audience - 30, 0)
-        if (COMEDY == playFor(performance.performance).type) result += floor(performance.performance.audience.toDouble() / 5).toInt()
-        return result
-    }
-
     fun usd(number: Int): String {
         return NumberFormat.getCurrencyInstance(Locale.US).format(number / 100)
     }
@@ -74,7 +74,7 @@ fun renderPlainText(data: StatementData, plays: Map<String, Play>): String {
     fun totalVolumeCredits(): Int {
         var result = 0
         for (perf in data.performances) {
-            result += volumeCreditsFor(perf)
+            result += perf.volumeCredits
         }
         return result
     }
