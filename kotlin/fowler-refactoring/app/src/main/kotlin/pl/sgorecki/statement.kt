@@ -7,6 +7,10 @@ import kotlin.math.floor
 import kotlin.math.max
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
+    return renderPlainText(invoice, plays)
+}
+
+fun renderPlainText(invoice: Invoice, plays: Map<String, Play>): String {
     fun playFor(performance: Performance): Play = plays[performance.playId]!!
 
     fun amountFor(perf: Performance): Int {
@@ -61,7 +65,6 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
 
     var result = "Statement for ${invoice.customer}\n"
     for (perf in invoice.performances) {
-        // print line for this order
         result += "    ${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience} seats)\n"
     }
     result += "Amount owed is ${usd(totalAmount())}\n"
