@@ -6,10 +6,12 @@ import java.util.*
 import kotlin.math.floor
 import kotlin.math.max
 
-class StatementData()
+data class StatementData(val customer: String)
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
-    val statementData = StatementData()
+    val statementData = StatementData(
+        customer = invoice.customer
+    )
     return renderPlainText(statementData, invoice, plays)
 }
 
@@ -66,7 +68,7 @@ fun renderPlainText(data: StatementData, invoice: Invoice, plays: Map<String, Pl
         return result
     }
 
-    var result = "Statement for ${invoice.customer}\n"
+    var result = "Statement for ${data.customer}\n"
     for (perf in invoice.performances) {
         result += "    ${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience} seats)\n"
     }
