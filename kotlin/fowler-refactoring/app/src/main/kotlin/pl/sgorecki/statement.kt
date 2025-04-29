@@ -8,7 +8,9 @@ import kotlin.math.max
 
 data class StatementData(
     val customer: String,
-    val performances: List<EnrichedPerformance>
+    val performances: List<EnrichedPerformance>,
+    val totalAmount: Int,
+    val totalVolumeCredits: Int,
 )
 
 data class EnrichedPerformance(
@@ -51,6 +53,22 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         return result
     }
 
+    fun totalAmount(performances: List<EnrichedPerformance>): Int {
+        var result = 0
+        for (perf in performances) {
+            result += perf.amount
+        }
+        return result
+    }
+
+    fun totalVolumeCredits(performances: List<EnrichedPerformance>): Int {
+        var result = 0
+        for (perf in performances) {
+            result += perf.volumeCredits
+        }
+        return result
+    }
+
     fun enrichPerformance(performance: Performance) = EnrichedPerformance(
         performance = performance,
         play = playFor(performance),
@@ -58,9 +76,12 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         volumeCredits = volumeCreditsFor(performance),
     )
 
+    val performances = invoice.performances.map { it -> enrichPerformance(it) }
     val statementData = StatementData(
         customer = invoice.customer,
-        performances = invoice.performances.map { it -> enrichPerformance(it) }
+        performances = performances,
+        totalAmount = totalAmount(performances),
+        totalVolumeCredits = totalVolumeCredits(performances),
     )
 
     return renderPlainText(statementData, plays)
@@ -71,27 +92,11 @@ fun renderPlainText(data: StatementData, plays: Map<String, Play>): String {
         return NumberFormat.getCurrencyInstance(Locale.US).format(number / 100)
     }
 
-    fun totalVolumeCredits(): Int {
-        var result = 0
-        for (perf in data.performances) {
-            result += perf.volumeCredits
-        }
-        return result
-    }
-
-    fun totalAmount(): Int {
-        var result = 0
-        for (perf in data.performances) {
-            result += perf.amount
-        }
-        return result
-    }
-
     var result = "Statement for ${data.customer}\n"
     for (perf in data.performances) {
         result += "    ${perf.play.name}: ${usd(perf.amount)} (${perf.performance.audience} seats)\n"
     }
-    result += "Amount owed is ${usd(totalAmount())}\n"
-    result += "You earned ${totalVolumeCredits()} credits\n"
+    result += "Amount owed is ${usd(data.totalAmount)}\n"
+    result += "You earned ${data.totalVolumeCredits} credits\n"
     return result
 }
