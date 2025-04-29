@@ -6,11 +6,14 @@ import java.util.*
 import kotlin.math.floor
 import kotlin.math.max
 
+class StatementData()
+
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
-    return renderPlainText(invoice, plays)
+    val statementData = StatementData()
+    return renderPlainText(statementData, invoice, plays)
 }
 
-fun renderPlainText(invoice: Invoice, plays: Map<String, Play>): String {
+fun renderPlainText(data: StatementData, invoice: Invoice, plays: Map<String, Play>): String {
     fun playFor(performance: Performance): Play = plays[performance.playId]!!
 
     fun amountFor(perf: Performance): Int {
