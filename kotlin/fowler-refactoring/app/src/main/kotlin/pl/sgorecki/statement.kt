@@ -43,6 +43,14 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         return NumberFormat.getCurrencyInstance(Locale.US).format(number / 100)
     }
 
+    fun totalVolumeCredits(): Int {
+        var volumeCredits = 0
+        for (perf in invoice.performances) {
+            volumeCredits += volumeCreditsFor(perf)
+        }
+        return volumeCredits
+    }
+
     var totalAmount = 0
     var result = "Statement for ${invoice.customer}\n"
     for (perf in invoice.performances) {
@@ -51,10 +59,7 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         result += "    ${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience} seats)\n"
         totalAmount += amountFor(perf)
     }
-    var volumeCredits = 0
-    for (perf in invoice.performances) {
-        volumeCredits += volumeCreditsFor(perf)
-    }
+    var volumeCredits = totalVolumeCredits()
 
     result += "Amount owed is ${usd(totalAmount)}\n"
     result += "You earned $volumeCredits credits\n"
