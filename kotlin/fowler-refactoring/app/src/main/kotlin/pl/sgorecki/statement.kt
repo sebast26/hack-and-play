@@ -54,21 +54,9 @@ fun volumeCreditsFor(performance: Performance): Int {
     return result
 }
 
-fun totalAmount(performances: List<EnrichedPerformance>): Int {
-    var result = 0
-    for (perf in performances) {
-        result += perf.amount
-    }
-    return result
-}
+fun totalAmount(performances: List<EnrichedPerformance>) = performances.sumOf { it.amount }
 
-fun totalVolumeCredits(performances: List<EnrichedPerformance>): Int {
-    var result = 0
-    for (perf in performances) {
-        result += perf.volumeCredits
-    }
-    return result
-}
+fun totalVolumeCredits(performances: List<EnrichedPerformance>) = performances.sumOf { it.volumeCredits }
 
 fun enrichPerformance(performance: Performance) = EnrichedPerformance(
     performance = performance,
