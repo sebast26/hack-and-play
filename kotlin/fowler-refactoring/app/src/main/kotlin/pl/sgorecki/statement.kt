@@ -9,7 +9,7 @@ import kotlin.math.max
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     fun playFor(performance: Performance): Play = plays[performance.playId]!!
 
-    fun amountFor(perf: Performance, play: Play): Int {
+    fun amountFor(perf: Performance): Int {
         var result = 0
         when (playFor(perf).type) {
             PlayType.TRAGEDY -> {
@@ -38,7 +38,7 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     val format: (Int) -> String = { num -> NumberFormat.getCurrencyInstance(Locale.US).format(num) }
 
     for (perf in invoice.performances) {
-        val thisAmount = amountFor(perf, playFor(perf))
+        val thisAmount = amountFor(perf)
 
         volumeCredits += max(perf.audience - 30, 0)
         // add extra credits for every ten comedy attendees
