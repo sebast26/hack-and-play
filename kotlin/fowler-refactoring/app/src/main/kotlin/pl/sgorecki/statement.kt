@@ -7,27 +7,27 @@ import kotlin.math.floor
 import kotlin.math.max
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
-    fun amountFor(perf: Performance, play: Play?): Int {
-        var thisAmount = 0
-        when (play?.type) {
+    fun amountFor(perf: Performance, play: Play): Int {
+        var result = 0
+        when (play.type) {
             PlayType.TRAGEDY -> {
-                thisAmount = 40000
+                result = 40000
                 if (perf.audience > 30) {
-                    thisAmount += 1000 * (perf.audience - 30)
+                    result += 1000 * (perf.audience - 30)
                 }
             }
 
             COMEDY -> {
-                thisAmount = 30000
+                result = 30000
                 if (perf.audience > 20) {
-                    thisAmount += 10000 + 500 * (perf.audience - 20)
+                    result += 10000 + 500 * (perf.audience - 20)
                 }
-                thisAmount += 300 * perf.audience
+                result += 300 * perf.audience
             }
 
-            else -> error("Unknown play type: ${play?.type}")
+            else -> error("Unknown play type: ${play.type}")
         }
-        return thisAmount
+        return result
     }
 
     var totalAmount = 0
@@ -37,7 +37,7 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
 
     for (perf in invoice.performances) {
         val play = plays[perf.playId]
-        val thisAmount = amountFor(perf, play)
+        val thisAmount = amountFor(perf, play!!)
 
         volumeCredits += max(perf.audience - 30, 0)
         // add extra credits for every ten comedy attendees
