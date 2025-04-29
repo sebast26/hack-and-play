@@ -11,12 +11,43 @@ data class StatementData(
     val performances: List<EnrichedPerformance>
 )
 
-data class EnrichedPerformance(val performance: Performance, val play: Play)
+data class EnrichedPerformance(
+    val performance: Performance,
+    val play: Play,
+    val amount: Int,
+)
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     fun playFor(performance: Performance): Play = plays[performance.playId]!!
 
-    fun enrichPerformance(performance: Performance) = EnrichedPerformance(performance, playFor(performance))
+    fun amountFor(perf: Performance): Int {
+        var result = 0
+        when (playFor(perf).type) {
+            PlayType.TRAGEDY -> {
+                result = 40000
+                if (perf.audience > 30) {
+                    result += 1000 * (perf.audience - 30)
+                }
+            }
+
+            COMEDY -> {
+                result = 30000
+                if (perf.audience > 20) {
+                    result += 10000 + 500 * (perf.audience - 20)
+                }
+                result += 300 * perf.audience
+            }
+
+            else -> error("Unknown play type: ${playFor(perf).type}")
+        }
+        return result
+    }
+
+    fun enrichPerformance(performance: Performance) = EnrichedPerformance(
+        performance = performance,
+        play = playFor(performance),
+        amount = amountFor(performance)
+    )
 
     val statementData = StatementData(
         customer = invoice.customer,
@@ -28,29 +59,6 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
 
 fun renderPlainText(data: StatementData, plays: Map<String, Play>): String {
     fun playFor(performance: Performance): Play = plays[performance.playId]!!
-
-    fun amountFor(perf: EnrichedPerformance): Int {
-        var result = 0
-        when (playFor(perf.performance).type) {
-            PlayType.TRAGEDY -> {
-                result = 40000
-                if (perf.performance.audience > 30) {
-                    result += 1000 * (perf.performance.audience - 30)
-                }
-            }
-
-            COMEDY -> {
-                result = 30000
-                if (perf.performance.audience > 20) {
-                    result += 10000 + 500 * (perf.performance.audience - 20)
-                }
-                result += 300 * perf.performance.audience
-            }
-
-            else -> error("Unknown play type: ${playFor(perf.performance).type}")
-        }
-        return result
-    }
 
     fun volumeCreditsFor(performance: EnrichedPerformance): Int {
         var result = 0
@@ -74,14 +82,14 @@ fun renderPlainText(data: StatementData, plays: Map<String, Play>): String {
     fun totalAmount(): Int {
         var result = 0
         for (perf in data.performances) {
-            result += amountFor(perf)
+            result += perf.amount
         }
         return result
     }
 
     var result = "Statement for ${data.customer}\n"
     for (perf in data.performances) {
-        result += "    ${perf.play.name}: ${usd(amountFor(perf))} (${perf.performance.audience} seats)\n"
+        result += "    ${perf.play.name}: ${usd(perf.amount)} (${perf.performance.audience} seats)\n"
     }
     result += "Amount owed is ${usd(totalAmount())}\n"
     result += "You earned ${totalVolumeCredits()} credits\n"
