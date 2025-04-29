@@ -38,15 +38,13 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     val format: (Int) -> String = { num -> NumberFormat.getCurrencyInstance(Locale.US).format(num) }
 
     for (perf in invoice.performances) {
-        val thisAmount = amountFor(perf)
-
         volumeCredits += max(perf.audience - 30, 0)
         // add extra credits for every ten comedy attendees
         if (COMEDY == playFor(perf).type) volumeCredits += floor(perf.audience.toDouble() / 5).toInt()
 
         // print line for this order
-        result += "    ${playFor(perf).name}: ${format(thisAmount / 100)} (${perf.audience} seats)\n"
-        totalAmount += thisAmount
+        result += "    ${playFor(perf).name}: ${format(amountFor(perf) / 100)} (${perf.audience} seats)\n"
+        totalAmount += amountFor(perf)
     }
 
     result += "Amount owed is ${format(totalAmount / 100)}\n"
