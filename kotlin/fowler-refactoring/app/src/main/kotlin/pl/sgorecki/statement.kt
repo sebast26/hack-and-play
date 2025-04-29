@@ -32,15 +32,20 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         return result
     }
 
+    fun volumeCreditsFor(performance: Performance): Int {
+        var volumeCredits = 0
+        volumeCredits += max(performance.audience - 30, 0)
+        if (COMEDY == playFor(performance).type) volumeCredits += floor(performance.audience.toDouble() / 5).toInt()
+        return volumeCredits
+    }
+
     var totalAmount = 0
     var volumeCredits = 0
     var result = "Statement for ${invoice.customer}\n"
     val format: (Int) -> String = { num -> NumberFormat.getCurrencyInstance(Locale.US).format(num) }
 
     for (perf in invoice.performances) {
-        volumeCredits += max(perf.audience - 30, 0)
-        // add extra credits for every ten comedy attendees
-        if (COMEDY == playFor(perf).type) volumeCredits += floor(perf.audience.toDouble() / 5).toInt()
+        volumeCredits += volumeCreditsFor(perf)
 
         // print line for this order
         result += "    ${playFor(perf).name}: ${format(amountFor(perf) / 100)} (${perf.audience} seats)\n"
