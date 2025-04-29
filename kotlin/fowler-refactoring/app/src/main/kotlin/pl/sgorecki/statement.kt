@@ -64,10 +64,7 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         // print line for this order
         result += "    ${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience} seats)\n"
     }
-
-    var totalAmount = appleSouce()
-
-    result += "Amount owed is ${usd(totalAmount)}\n"
+    result += "Amount owed is ${usd(appleSouce())}\n"
     result += "You earned ${totalVolumeCredits()} credits\n"
     return result
 }
