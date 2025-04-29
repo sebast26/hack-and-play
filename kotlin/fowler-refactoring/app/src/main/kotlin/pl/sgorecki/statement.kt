@@ -7,9 +7,11 @@ import kotlin.math.floor
 import kotlin.math.max
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
+    fun playFor(performance: Performance): Play = plays[performance.playId]!!
+
     fun amountFor(perf: Performance, play: Play): Int {
         var result = 0
-        when (play.type) {
+        when (playFor(perf).type) {
             PlayType.TRAGEDY -> {
                 result = 40000
                 if (perf.audience > 30) {
@@ -25,12 +27,10 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
                 result += 300 * perf.audience
             }
 
-            else -> error("Unknown play type: ${play.type}")
+            else -> error("Unknown play type: ${playFor(perf).type}")
         }
         return result
     }
-
-    fun playFor(performance: Performance): Play = plays[performance.playId]!!
 
     var totalAmount = 0
     var volumeCredits = 0
