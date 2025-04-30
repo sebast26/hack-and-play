@@ -19,14 +19,11 @@ open class PerformanceCalculator(
     private val performance: Performance,
     val play: Play
 ) {
-    fun amount(): Int {
+    open fun amount(): Int {
         var result = 0
         when (play.type) {
             TRAGEDY -> {
-                result = 40000
-                if (performance.audience > 30) {
-                    result += 1000 * (performance.audience - 30)
-                }
+                throw Error("should not happen")
             }
 
             COMEDY -> {
@@ -50,7 +47,16 @@ open class PerformanceCalculator(
     }
 }
 
-class TragedyCalculator(performance: Performance, play: Play) : PerformanceCalculator(performance, play)
+class TragedyCalculator(val performance: Performance, play: Play) : PerformanceCalculator(performance, play) {
+    override fun amount(): Int {
+        var result = 40000
+        if (performance.audience > 30) {
+            result += 1000 * (performance.audience - 30)
+        }
+        return result
+    }
+}
+
 class ComedyCalculator(performance: Performance, play: Play) : PerformanceCalculator(performance, play)
 
 fun enrichPerformance(performance: Performance): EnrichedPerformance {
