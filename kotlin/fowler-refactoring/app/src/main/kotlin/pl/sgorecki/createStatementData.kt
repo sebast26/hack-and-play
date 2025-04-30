@@ -1,6 +1,7 @@
 package pl.sgorecki
 
 import pl.sgorecki.PlayType.COMEDY
+import pl.sgorecki.PlayType.TRAGEDY
 import java.text.NumberFormat
 import java.util.*
 import kotlin.math.floor
@@ -14,14 +15,14 @@ fun totalAmount(performances: List<EnrichedPerformance>) = performances.sumOf { 
 
 fun totalVolumeCredits(performances: List<EnrichedPerformance>) = performances.sumOf { it.volumeCredits }
 
-class PerformanceCalculator(
+open class PerformanceCalculator(
     private val performance: Performance,
     val play: Play
 ) {
     fun amount(): Int {
         var result = 0
         when (play.type) {
-            PlayType.TRAGEDY -> {
+            TRAGEDY -> {
                 result = 40000
                 if (performance.audience > 30) {
                     result += 1000 * (performance.audience - 30)
@@ -49,8 +50,11 @@ class PerformanceCalculator(
     }
 }
 
+class TragedyCalculator(performance: Performance, play: Play) : PerformanceCalculator(performance, play)
+class ComedyCalculator(performance: Performance, play: Play) : PerformanceCalculator(performance, play)
+
 fun enrichPerformance(performance: Performance): EnrichedPerformance {
-    val calculator = createPerformanceCalculator(performance)
+    val calculator = createPerformanceCalculator(performance, playFor(performance))
     return EnrichedPerformance(
         performance = performance,
         play = calculator.play,
@@ -59,8 +63,11 @@ fun enrichPerformance(performance: Performance): EnrichedPerformance {
     )
 }
 
-private fun createPerformanceCalculator(performance: Performance): PerformanceCalculator =
-    PerformanceCalculator(performance, playFor(performance))
+private fun createPerformanceCalculator(performance: Performance, play: Play) = when (play.type) {
+    TRAGEDY -> TragedyCalculator(performance, play)
+    COMEDY -> ComedyCalculator(performance, play)
+    else -> error("Unknown play type: ${play.type}")
+}
 
 fun createStatementData(invoice: Invoice): StatementData {
     val performances = invoice.performances.map { it -> enrichPerformance(it) }
