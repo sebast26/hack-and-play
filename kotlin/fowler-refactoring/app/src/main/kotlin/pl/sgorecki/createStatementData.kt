@@ -50,7 +50,7 @@ class PerformanceCalculator(
 }
 
 fun enrichPerformance(performance: Performance): EnrichedPerformance {
-    val calculator = PerformanceCalculator(performance, playFor(performance))
+    val calculator = createPerformanceCalculator(performance)
     return EnrichedPerformance(
         performance = performance,
         play = calculator.play,
@@ -58,6 +58,9 @@ fun enrichPerformance(performance: Performance): EnrichedPerformance {
         volumeCredits = calculator.volumeCredits(),
     )
 }
+
+private fun createPerformanceCalculator(performance: Performance): PerformanceCalculator =
+    PerformanceCalculator(performance, playFor(performance))
 
 fun createStatementData(invoice: Invoice): StatementData {
     val performances = invoice.performances.map { it -> enrichPerformance(it) }
