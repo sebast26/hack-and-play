@@ -11,26 +11,7 @@ fun playFor(performance: Performance) = plays[performance.playId]!!
 fun usd(number: Int) = NumberFormat.getCurrencyInstance(Locale.US).format(number / 100)
 
 fun amountFor(perf: Performance): Int {
-    var result = 0
-    when (playFor(perf).type) {
-        PlayType.TRAGEDY -> {
-            result = 40000
-            if (perf.audience > 30) {
-                result += 1000 * (perf.audience - 30)
-            }
-        }
-
-        COMEDY -> {
-            result = 30000
-            if (perf.audience > 20) {
-                result += 10000 + 500 * (perf.audience - 20)
-            }
-            result += 300 * perf.audience
-        }
-
-        else -> error("Unknown play type: ${playFor(perf).type}")
-    }
-    return result
+    return PerformanceCalculator(perf, playFor(perf)).amount()
 }
 
 fun volumeCreditsFor(performance: Performance): Int {
