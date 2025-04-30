@@ -44,7 +44,33 @@ fun totalAmount(performances: List<EnrichedPerformance>) = performances.sumOf { 
 
 fun totalVolumeCredits(performances: List<EnrichedPerformance>) = performances.sumOf { it.volumeCredits }
 
-class PerformanceCalculator(private val performance: Performance, val play: Play)
+class PerformanceCalculator(
+    private val performance: Performance,
+    val play: Play
+) {
+    fun amount(): Int {
+        var result = 0
+        when (play.type) {
+            PlayType.TRAGEDY -> {
+                result = 40000
+                if (performance.audience > 30) {
+                    result += 1000 * (performance.audience - 30)
+                }
+            }
+
+            COMEDY -> {
+                result = 30000
+                if (performance.audience > 20) {
+                    result += 10000 + 500 * (performance.audience - 20)
+                }
+                result += 300 * performance.audience
+            }
+
+            else -> error("Unknown play type: ${play.type}")
+        }
+        return result
+    }
+}
 
 fun enrichPerformance(performance: Performance): EnrichedPerformance {
     val calculator = PerformanceCalculator(performance, playFor(performance))
