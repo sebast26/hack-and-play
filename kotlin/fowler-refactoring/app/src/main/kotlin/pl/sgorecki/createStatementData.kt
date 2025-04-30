@@ -11,10 +11,7 @@ fun playFor(performance: Performance) = plays[performance.playId]!!
 fun usd(number: Int) = NumberFormat.getCurrencyInstance(Locale.US).format(number / 100)
 
 fun volumeCreditsFor(performance: Performance): Int {
-    var result = 0
-    result += max(performance.audience - 30, 0)
-    if (COMEDY == playFor(performance).type) result += floor(performance.audience.toDouble() / 5).toInt()
-    return result
+    return PerformanceCalculator(performance, playFor(performance)).volumeCredits()
 }
 
 fun totalAmount(performances: List<EnrichedPerformance>) = performances.sumOf { it.amount }
@@ -48,7 +45,7 @@ class PerformanceCalculator(
         return result
     }
 
-    fun volumeCreditsFor(): Int {
+    fun volumeCredits(): Int {
         var result = 0
         result += max(performance.audience - 30, 0)
         if (COMEDY == playFor(performance).type) result += floor(performance.audience.toDouble() / 5).toInt()
