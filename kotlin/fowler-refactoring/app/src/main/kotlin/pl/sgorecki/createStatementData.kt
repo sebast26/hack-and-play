@@ -27,11 +27,7 @@ open class PerformanceCalculator(
             }
 
             COMEDY -> {
-                result = 30000
-                if (performance.audience > 20) {
-                    result += 10000 + 500 * (performance.audience - 20)
-                }
-                result += 300 * performance.audience
+                throw Error("should not happen")
             }
 
             else -> error("Unknown play type: ${play.type}")
@@ -57,7 +53,16 @@ class TragedyCalculator(val performance: Performance, play: Play) : PerformanceC
     }
 }
 
-class ComedyCalculator(performance: Performance, play: Play) : PerformanceCalculator(performance, play)
+class ComedyCalculator(val performance: Performance, play: Play) : PerformanceCalculator(performance, play) {
+    override fun amount(): Int {
+        var result = 30000
+        if (performance.audience > 20) {
+            result += 10000 + 500 * (performance.audience - 20)
+        }
+        result += 300 * performance.audience
+        return result
+    }
+}
 
 fun enrichPerformance(performance: Performance): EnrichedPerformance {
     val calculator = createPerformanceCalculator(performance, playFor(performance))
