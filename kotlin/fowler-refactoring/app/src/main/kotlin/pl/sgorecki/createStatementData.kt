@@ -15,25 +15,11 @@ fun totalAmount(performances: List<EnrichedPerformance>) = performances.sumOf { 
 
 fun totalVolumeCredits(performances: List<EnrichedPerformance>) = performances.sumOf { it.volumeCredits }
 
-open class PerformanceCalculator(
+abstract class PerformanceCalculator(
     private val performance: Performance,
     val play: Play
 ) {
-    open fun amount(): Int {
-        var result = 0
-        when (play.type) {
-            TRAGEDY -> {
-                throw Error("should not happen")
-            }
-
-            COMEDY -> {
-                throw Error("should not happen")
-            }
-
-            else -> error("Unknown play type: ${play.type}")
-        }
-        return result
-    }
+    abstract fun amount(): Int
 
     fun volumeCredits(): Int {
         var result = 0
