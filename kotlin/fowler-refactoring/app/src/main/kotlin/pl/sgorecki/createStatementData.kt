@@ -47,6 +47,13 @@ class PerformanceCalculator(
         }
         return result
     }
+
+    fun volumeCreditsFor(): Int {
+        var result = 0
+        result += max(performance.audience - 30, 0)
+        if (COMEDY == playFor(performance).type) result += floor(performance.audience.toDouble() / 5).toInt()
+        return result
+    }
 }
 
 fun enrichPerformance(performance: Performance): EnrichedPerformance {
