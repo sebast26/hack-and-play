@@ -2,7 +2,7 @@ package pl.sgorecki
 
 import pl.sgorecki.PlayType.COMEDY
 import java.text.NumberFormat
-import java.util.Locale
+import java.util.*
 import kotlin.math.floor
 import kotlin.math.max
 
@@ -44,12 +44,17 @@ fun totalAmount(performances: List<EnrichedPerformance>) = performances.sumOf { 
 
 fun totalVolumeCredits(performances: List<EnrichedPerformance>) = performances.sumOf { it.volumeCredits }
 
-fun enrichPerformance(performance: Performance) = EnrichedPerformance(
-    performance = performance,
-    play = playFor(performance),
-    amount = amountFor(performance),
-    volumeCredits = volumeCreditsFor(performance),
-)
+class PerformanceCalculator(private val performance: Performance, val play: Play)
+
+fun enrichPerformance(performance: Performance): EnrichedPerformance {
+    val calculator = PerformanceCalculator(performance, playFor(performance))
+    return EnrichedPerformance(
+        performance = performance,
+        play = calculator.play,
+        amount = amountFor(performance),
+        volumeCredits = volumeCreditsFor(performance),
+    )
+}
 
 fun createStatementData(invoice: Invoice): StatementData {
     val performances = invoice.performances.map { it -> enrichPerformance(it) }
