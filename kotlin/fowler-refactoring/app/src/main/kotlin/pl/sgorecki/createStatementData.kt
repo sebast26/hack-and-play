@@ -10,10 +10,6 @@ fun playFor(performance: Performance) = plays[performance.playId]!!
 
 fun usd(number: Int) = NumberFormat.getCurrencyInstance(Locale.US).format(number / 100)
 
-fun amountFor(perf: Performance): Int {
-    return PerformanceCalculator(perf, playFor(perf)).amount()
-}
-
 fun volumeCreditsFor(performance: Performance): Int {
     var result = 0
     result += max(performance.audience - 30, 0)
@@ -58,7 +54,7 @@ fun enrichPerformance(performance: Performance): EnrichedPerformance {
     return EnrichedPerformance(
         performance = performance,
         play = calculator.play,
-        amount = amountFor(performance),
+        amount = calculator.amount(),
         volumeCredits = volumeCreditsFor(performance),
     )
 }
