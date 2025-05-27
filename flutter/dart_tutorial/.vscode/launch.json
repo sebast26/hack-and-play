@@ -5,6 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Dart & Flutter - 01",
+            "request": "launch",
+            "type": "dart",
+            "program": "01_basics.dart"
+        },
+        {
             "name": "Dart & Flutter",
             "request": "launch",
             "type": "dart",
