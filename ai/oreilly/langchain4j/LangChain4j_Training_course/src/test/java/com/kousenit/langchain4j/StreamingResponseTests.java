@@ -8,12 +8,13 @@ import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Lab 2: Streaming Responses
@@ -42,45 +43,45 @@ class StreamingResponseTests {
     @Test
     void streamingChat() throws InterruptedException {
         // TODO: Create OpenAI streaming chat model
-        // StreamingChatModel model = OpenAiStreamingChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_NANO)
-        //         .build();
+        StreamingChatModel model = OpenAiStreamingChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .build();
 
         // TODO: Create user message
-        // String userMessage = "Tell me a story about a brave robot.";
-        
+        String userMessage = "Tell me a story about a brave robot.";
+
         // TODO: Set up synchronization and response collection
-        // CountDownLatch latch = new CountDownLatch(1);
-        // StringBuilder fullResponse = new StringBuilder();
+        CountDownLatch latch = new CountDownLatch(1);
+        StringBuilder fullResponse = new StringBuilder();
 
         // TODO: Start streaming with response handler
-        // model.chat(userMessage, new StreamingChatResponseHandler() {
-        //     @Override
-        //     public void onPartialResponse(String token) {
-        //         System.out.print(token);
-        //         fullResponse.append(token);
-        //     }
-        //
-        //     @Override
-        //     public void onCompleteResponse(ChatResponse response) {
-        //         System.out.println("\n\nStreaming completed!");
-        //         System.out.println("Full response: " + fullResponse.toString());
-        //         latch.countDown();
-        //     }
-        //
-        //     @Override
-        //     public void onError(Throwable error) {
-        //         System.err.println("Error: " + error.getMessage());
-        //         latch.countDown();
-        //     }
-        // });
+        model.chat(userMessage, new StreamingChatResponseHandler() {
+            @Override
+            public void onPartialResponse(String token) {
+                System.out.print(token);
+                fullResponse.append(token);
+            }
+
+            @Override
+            public void onCompleteResponse(ChatResponse response) {
+                System.out.println("\n\nStreaming completed!");
+                System.out.println("Full response: " + fullResponse.toString());
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                System.err.println("Error: " + error.getMessage());
+                latch.countDown();
+            }
+        });
 
         // TODO: Wait for completion
-        // latch.await();
-        
+        latch.await();
+
         // TODO: Verify response was received
-        // assertFalse(fullResponse.toString().isEmpty());
+        assertFalse(fullResponse.toString().isEmpty());
     }
 
     /**
@@ -97,45 +98,45 @@ class StreamingResponseTests {
     @Test
     void streamingWithContext() throws InterruptedException {
         // TODO: Create OpenAI streaming chat model
-        // StreamingChatModel model = OpenAiStreamingChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_NANO)
-        //         .build();
+        StreamingChatModel model = OpenAiStreamingChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .build();
 
         // TODO: Create system and user messages
-        // SystemMessage systemMessage = SystemMessage.from("You are a helpful coding assistant.");
-        // UserMessage userMessage = UserMessage.from("Explain recursion in simple terms.");
-        
+        SystemMessage systemMessage = SystemMessage.from("You are a helpful coding assistant.");
+        UserMessage userMessage = UserMessage.from("Explain recursion in simple terms.");
+
         // TODO: Set up synchronization
-        // CountDownLatch latch = new CountDownLatch(1);
-        // StringBuilder responseBuilder = new StringBuilder();
+        CountDownLatch latch = new CountDownLatch(1);
+        StringBuilder responseBuilder = new StringBuilder();
 
         // TODO: Stream with multiple messages
-        // model.chat(Arrays.asList(systemMessage, userMessage), 
-        //     new StreamingChatResponseHandler() {
-        //         @Override
-        //         public void onPartialResponse(String token) {
-        //             System.out.print(token);
-        //             responseBuilder.append(token);
-        //         }
-        //
-        //         @Override
-        //         public void onCompleteResponse(ChatResponse response) {
-        //             System.out.println("\n\nResponse completed with: " + response.finishReason());
-        //             latch.countDown();
-        //         }
-        //
-        //         @Override
-        //         public void onError(Throwable error) {
-        //             System.err.println("Error occurred: " + error.getMessage());
-        //             latch.countDown();
-        //         }
-        //     });
+        model.chat(List.of(systemMessage, userMessage),
+                new StreamingChatResponseHandler() {
+                    @Override
+                    public void onPartialResponse(String token) {
+                        System.out.println(token);
+                        responseBuilder.append(token);
+                    }
+
+                    @Override
+                    public void onCompleteResponse(ChatResponse response) {
+                        System.out.println("\n\nResponse completed with: " + response.finishReason());
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        System.err.println("Error occurred: " + error.getMessage());
+                        latch.countDown();
+                    }
+                });
 
         // TODO: Wait for completion with timeout
-        // boolean completed = latch.await(30, TimeUnit.SECONDS);
-        // assertTrue(completed, "Streaming should complete within 30 seconds");
-        // assertFalse(responseBuilder.toString().isEmpty(), "Response should not be empty");
+        boolean completed = latch.await(30, TimeUnit.SECONDS);
+        assertTrue(completed, "Streaming should complete within 30 seconds");
+        assertFalse(responseBuilder.toString().isEmpty(), "Response should not be empty");
     }
 
     /**
