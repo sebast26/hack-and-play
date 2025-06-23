@@ -27,4 +27,5 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	jvmArgs("-XX:+IgnoreUnrecognizedVMOptions", "-XX:-UseClassDataSharing")
 }
