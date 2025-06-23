@@ -57,4 +57,17 @@ class AstroServiceTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    void getAstroResponseFromInterface(@Autowired AstroInterface astroInterface) {
+        AstroResponse response = astroInterface.getAstroResponse()
+                .block(Duration.ofSeconds(10));
+        assertNotNull(response);
+        assertAll(
+                () -> assertEquals("success", response.message()),
+                () -> assertTrue(response.number() >= 0),
+                () -> assertEquals(response.number(), response.people().size())
+        );
+        System.out.println(response);
+    }
 }
