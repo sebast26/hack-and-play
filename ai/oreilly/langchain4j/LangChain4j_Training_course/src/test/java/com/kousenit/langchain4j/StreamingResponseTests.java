@@ -13,8 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Lab 2: Streaming Responses
@@ -152,44 +151,44 @@ class StreamingResponseTests {
     void streamingErrorHandling() throws InterruptedException {
         // TODO: Create a streaming model that might fail
         // Note: You could use an invalid API key or model name to test error handling
-        // StreamingChatModel model = OpenAiStreamingChatModel.builder()
-        //         .apiKey("invalid-key") // This should cause an error
-        //         .modelName(GPT_4_1_NANO)
-        //         .build();
+         StreamingChatModel model = OpenAiStreamingChatModel.builder()
+                 .apiKey("invalid-key") // This should cause an error
+                 .modelName(GPT_4_1_NANO)
+                 .build();
 
         // TODO: Set up error tracking
-        // CountDownLatch latch = new CountDownLatch(1);
-        // final boolean[] errorOccurred = {false};
-        // final String[] errorMessage = {null};
+         CountDownLatch latch = new CountDownLatch(1);
+         final boolean[] errorOccurred = {false};
+         final String[] errorMessage = {null};
 
         // TODO: Attempt streaming with error handling
-        // String userMessage = "This should fail due to invalid API key";
-        // 
-        // model.chat(userMessage, new StreamingChatResponseHandler() {
-        //     @Override
-        //     public void onPartialResponse(String token) {
-        //         System.out.print(token);
-        //     }
-        //
-        //     @Override
-        //     public void onCompleteResponse(ChatResponse response) {
-        //         System.out.println("Unexpected completion");
-        //         latch.countDown();
-        //     }
-        //
-        //     @Override
-        //     public void onError(Throwable error) {
-        //         System.err.println("Expected error occurred: " + error.getMessage());
-        //         errorOccurred[0] = true;
-        //         errorMessage[0] = error.getMessage();
-        //         latch.countDown();
-        //     }
-        // });
+         String userMessage = "This should fail due to invalid API key";
+
+         model.chat(userMessage, new StreamingChatResponseHandler() {
+             @Override
+             public void onPartialResponse(String token) {
+                 System.out.print(token);
+             }
+
+             @Override
+             public void onCompleteResponse(ChatResponse response) {
+                 System.out.println("Unexpected completion");
+                 latch.countDown();
+             }
+
+             @Override
+             public void onError(Throwable error) {
+                 System.err.println("Expected error occurred: " + error.getMessage());
+                 errorOccurred[0] = true;
+                 errorMessage[0] = error.getMessage();
+                 latch.countDown();
+             }
+         });
 
         // TODO: Wait and verify error was handled
-        // boolean completed = latch.await(10, TimeUnit.SECONDS);
-        // assertTrue(completed, "Error handling should complete within 10 seconds");
-        // assertTrue(errorOccurred[0], "Error should have been handled");
-        // assertNotNull(errorMessage[0], "Error message should be captured");
+        boolean completed = latch.await(10, TimeUnit.SECONDS);
+        assertTrue(completed, "Error handling should complete within 10 seconds");
+        assertTrue(errorOccurred[0], "Error should have been handled");
+        assertNotNull(errorMessage[0], "Error message should be captured");
     }
 }
