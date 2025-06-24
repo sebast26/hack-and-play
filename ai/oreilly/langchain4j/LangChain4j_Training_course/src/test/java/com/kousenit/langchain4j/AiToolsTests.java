@@ -76,24 +76,35 @@ class AiToolsTests {
     @Test
     void useBasicDateTimeTool() {
         // TODO: Create OpenAI chat model
-        // ChatModel model = OpenAiChatModel.builder()...
+        ChatModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .build();
         
         // TODO: Create assistant with DateTimeTool
-        // Assistant assistant = AiServices.builder(Assistant.class)...
+        Assistant assistant = AiServices.builder(Assistant.class)
+                .chatModel(model)
+                .tools(new DateTimeTool())
+                .build();
         
         // TODO: Test current date/time request
-        // String response1 = assistant.chat("What is the current date and time?");
-        
+         String response1 = assistant.chat("What is the current date and time?");
+        System.out.println("Response 1: " + response1);
+
         // TODO: Test future date calculation  
-        // String response2 = assistant.chat("What year will it be in 5 years?");
-        
+         String response2 = assistant.chat("What year will it be in 5 years?");
+        System.out.println("Response 2: " + response2);
+
         // TODO: Test alarm setting
-        // String response3 = assistant.chat("Set an alarm for 8:00 AM tomorrow");
-        
+         String response3 = assistant.chat("Set an alarm for 8:00 AM tomorrow");
+        System.out.println("Response 3: " + response3);
+
         // TODO: Add assertions to verify responses
-        // Use assertAll() for grouped assertions and assertThat() for specific content
+        assertNotNull(response1);
+        assertNotNull(response2);
+        assertNotNull(response3);
         
-        fail("TODO: Implement basic tool usage test");
+//        fail("TODO: Implement basic tool usage test");
     }
 
     /**
