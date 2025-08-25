@@ -1,4 +1,4 @@
-import 'package:daily_widgets/widgets/cupertino_checkbox.dart';
+import 'package:daily_widgets/widgets/cupertino_switch.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const CupertinoCheckboxTest(),
+      home: const CupertinoSwitchTest(),
     );
   }
 }
