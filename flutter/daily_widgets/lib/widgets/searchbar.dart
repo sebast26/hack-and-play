@@ -52,20 +52,19 @@ class _SearchBarTestState extends State<SearchBarTest> {
               suggestionsBuilder: (BuildContext context, SearchController controller) {
                 final String input = controller.value.text;
                 return [
-                  ListTile(
-                    title: Text('Something $input'),
-                    onTap: () {
-                      print('You have just selected Something $input');
-                      controller.closeView('Something $input');
+                  ...List.generate(
+                    5,
+                    (int index) {
+                      final String item = 'Something $index, $input';
+                      return ListTile(
+                        title: Text(item),
+                        onTap: () {
+                          debugPrint('You have just selected $item');
+                          controller.closeView(item);
+                        },
+                      );
                     }
                   ),
-                  ListTile(
-                    title: Text('Other $input'),
-                    onTap: () {
-                      print('You have just selected Other $input');
-                      controller.closeView('Other $input');
-                    },
-                  )
                 ];
               },
             )

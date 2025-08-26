@@ -1,3 +1,4 @@
+import 'package:daily_widgets/widgets/searchbar.dart';
 import 'package:daily_widgets/widgets/video_app.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const VideoAppTest(),
+      home: const SearchBarTest(),
     );
   }
 }
