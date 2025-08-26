@@ -1,5 +1,4 @@
-import 'package:daily_widgets/widgets/searchbar.dart';
-import 'package:daily_widgets/widgets/video_app.dart';
+import 'package:daily_widgets/widgets/tween_animation.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -16,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const SearchBarTest(),
+      home: const TextSizeAnimationTest(),
     );
   }
 }
