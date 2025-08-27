@@ -1,4 +1,4 @@
-import 'package:daily_widgets/widgets/dropdown_menu.dart';
+import 'package:daily_widgets/charts.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: DropdownMenuTest(),
+      home: ChartsTest(),
     );
   }
 }
