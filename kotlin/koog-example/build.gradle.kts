@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.koog.agents)
     implementation(libs.koog.tools)
     implementation(libs.koog.executor.openai.client)
+    implementation(libs.koog.features.event.handler)
     testImplementation(kotlin("test"))
 }
 
