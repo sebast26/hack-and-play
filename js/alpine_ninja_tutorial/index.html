@@ -15,6 +15,9 @@
 
     <!-- username -->
     <div class="form-field">
+      <p class="hint" x-bind:class="{'warning': username.length > 10}">
+        <span x-text="15 - username.length"></span> characters remaining
+      </p>
       <label>
         <span></span>Username:
         <input
@@ -61,6 +64,9 @@
 
     <!-- short bio -->
     <div class="form-field">
+      <p class="hint" :class="{'warning': bio.length > 90}">
+        <span x-text="100 - bio.length"></span> characters remaining
+      </p>
       <label>
         <span>Short Bio:</span>
         <textarea maxlength="100" x-model="bio"></textarea>
