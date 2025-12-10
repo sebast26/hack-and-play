@@ -29,6 +29,8 @@ dependencies {
 
     implementation("com.uchuhimo:konf:1.1.2")
     implementation("com.uchuhimo:konf-yaml:1.1.2")
+
+    implementation("org.http4k:http4k-config:6.23.1.0")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

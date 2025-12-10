@@ -2,7 +2,7 @@ package pl.sgorecki
 
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.ConfigSpec
-import com.uchuhimo.konf.source.yaml
+import pl.sgorecki.k8s.Database
 
 object ServerSpec : ConfigSpec() {
     val host by optional("0.0.0.0")
@@ -11,14 +11,26 @@ object ServerSpec : ConfigSpec() {
 
 fun main() {
 
+//    val config = Config {
+//        addSpec(ServerSpec)
+//    }.from.yaml.string("""
+//       server:
+//         host: 0.0.0.0
+//         tcp_port: 8080
+//    """.trimIndent())
+//
+//    println("Server ${config[ServerSpec.host]} running on port ${config[ServerSpec.tcpPort]}")
+
     val config = Config {
-        addSpec(ServerSpec)
-    }.from.yaml.string("""
-       server:
-         host: 0.0.0.0
-         tcp_port: 8080
-    """.trimIndent())
+        addSpec(Database)
+    }
 
-    println("Server ${config[ServerSpec.host]} running on port ${config[ServerSpec.tcpPort]}")
+    // for Production
+    config[Database.writerHost] = "aurora.prod.rds.amazonaws.com"
+    config[Database.readerHost] = "aurora-ro.prod.rds.amazonaws.com"
+    config[Database.name] = "github-konf"
+    config[Database.primaryUrl] = Database.primaryUrlFor(config)
+    config[Database.readerUrl] = Database.readerUrlFor(config)
 
+    println("Database config: $config")
 }
