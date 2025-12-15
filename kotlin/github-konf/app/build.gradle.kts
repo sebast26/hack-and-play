@@ -31,6 +31,9 @@ dependencies {
     implementation("com.uchuhimo:konf-yaml:1.1.2")
 
     implementation("org.http4k:http4k-config:6.23.1.0")
+    implementation("dev.forkhandles:values4k:2.22.3.0")
+    implementation("io.fabric8:kubernetes-model-core:6.7.1")
+    implementation("org.http4k:http4k-connect-amazon-core:5.47.0.0")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

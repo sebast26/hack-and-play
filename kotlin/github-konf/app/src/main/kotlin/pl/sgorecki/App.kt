@@ -10,7 +10,7 @@ object ServerSpec : ConfigSpec() {
 }
 
 fun main() {
-
+// 1. Simple example
 //    val config = Config {
 //        addSpec(ServerSpec)
 //    }.from.yaml.string("""
@@ -21,6 +21,7 @@ fun main() {
 //
 //    println("Server ${config[ServerSpec.host]} running on port ${config[ServerSpec.tcpPort]}")
 
+// 2. Configuration of the database
     val config = Config {
         addSpec(Database)
     }
@@ -33,4 +34,9 @@ fun main() {
     config[Database.readerUrl] = Database.readerUrlFor(config)
 
     println("Database config: $config")
+
+
+// 3. Full App configuration
+
+    println("Staging config: ${Staging.config}")
 }
