@@ -5,9 +5,11 @@
   "private": true,
   "scripts": {
     "aggregate": "./scripts/aggregate.sh",
-    "merge": "openapi-merge-cli --config governance/openapi-merge.yaml"
+    "merge": "openapi-merge-cli --config governance/openapi-merge.yaml",
+    "validate": "./scripts/validate.sh"
   },
   "devDependencies": {
+    "@stoplight/spectral-cli": "^6.11.0",
     "openapi-merge-cli": "^1.3.1"
   }
 }

@@ -1,0 +1,39 @@
+# Partner API Spectral Ruleset
+# Enforces API design standards for Partner-facing APIs
+
+extends:
+  - spectral:oas
+
+rules:
+  # Documentation requirements
+  operation-description: error
+  operation-operationId: error
+  info-description: error
+
+  # Schema quality
+  oas3-valid-schema-example: error
+
+  # Partner API naming convention (snake_case for properties)
+  partner-api-naming:
+    description: Property names must use snake_case
+    message: "Property '{{property}}' must use snake_case (lowercase with underscores)"
+    severity: error
+    given: "$..properties[*]~"
+    then:
+      function: pattern
+      functionOptions:
+        match: "^[a-z][a-z0-9_]*$"
+
+  # Required error responses
+  partner-api-errors:
+    description: Operations should define 400 and 500 error responses
+    message: "Operation should define {{property}} error response"
+    severity: warn
+    given: "$.paths[*][get,post,put,patch,delete].responses"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          required:
+            - "400"
+            - "500"

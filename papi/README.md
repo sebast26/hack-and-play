@@ -8,6 +8,7 @@ This project implements Phase 1 of the Partner API Platform:
 - **KrakenD API Gateway** - Routes partner requests to internal services
 - **Mock Backend Services** - Orders and Users services for testing
 - **Spec Aggregation Pipeline** - Merges OpenAPI specs and generates gateway config
+- **Spectral Linting** - Validates API specs against Partner API design standards
 
 ## Prerequisites
 
@@ -88,6 +89,8 @@ papi/
 │   ├── specs/                  # Transformed specs (generated)
 │   │   ├── orders/
 │   │   └── users/
+│   ├── spectral/               # Linting rules
+│   │   └── .spectral.yaml      # Partner API ruleset
 │   ├── shared-schemas/
 │   │   └── common.yaml
 │   └── output/
@@ -95,7 +98,8 @@ papi/
 └── scripts/
     ├── aggregate.sh            # Main pipeline script
     ├── transform-spec.sh       # Path transformation
-    └── generate-krakend.sh     # KrakenD config generator
+    ├── generate-krakend.sh     # KrakenD config generator
+    └── validate.sh             # Spectral linting validation
 ```
 
 ## Endpoints
@@ -219,6 +223,34 @@ docker-compose down
 2. Run `./scripts/aggregate.sh`
 3. Restart gateway: `docker-compose restart gateway`
 
+## Spec Validation (Spectral)
+
+Validate OpenAPI specs against Partner API design standards using Spectral.
+
+### Running Validation
+
+```bash
+# Validate all specs
+./scripts/validate.sh
+
+# Or via npm
+npm run validate
+```
+
+### Linting Rules
+
+| Rule | Severity | Description |
+|------|----------|-------------|
+| `operation-description` | error | All operations must have descriptions |
+| `operation-operationId` | error | All operations must have operationId |
+| `info-description` | error | API must have description |
+| `partner-api-naming` | error | Property names must use snake_case |
+| `partner-api-errors` | warn | Should define 400, 500 error responses |
+
+### Customizing Rules
+
+Edit `governance/spectral/.spectral.yaml` to modify or add rules.
+
 ## Troubleshooting
 
 ### Pipeline Fails with "yq not found"
@@ -249,6 +281,5 @@ npm install
 
 - Authentication (Keycloak/JWT validation)
 - Rate limiting
-- Spectral linting validation
-- Breaking change detection
+- Breaking change detection (oasdiff)
 - CI/CD integration
