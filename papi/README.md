@@ -251,6 +251,39 @@ npm run validate
 
 Edit `governance/spectral/.spectral.yaml` to modify or add rules.
 
+## GitLab CI/CD
+
+The project includes a GitLab CI/CD pipeline (`.gitlab-ci.yml`) that automates the workflow.
+
+### Pipeline Stages
+
+| Stage | Job | Description | Runs On |
+|-------|-----|-------------|---------|
+| validate | `validate` | Check dependencies (yq, jq, npm) | All branches |
+| aggregate | `aggregate` | Transform specs, merge, generate KrakenD | All branches |
+| lint | `lint` | Spectral validation | All branches |
+| build | `build` | Build Docker images | Main branch only |
+| test | `test` | Integration tests against running services | Main branch only |
+
+### Artifacts
+
+The `aggregate` job produces artifacts that persist for 1 week:
+- `governance/specs/` - Transformed specs
+- `governance/output/partner-api.yaml` - Merged Partner API spec
+- `gateway/krakend.json` - KrakenD configuration
+
+### Running Locally
+
+```bash
+# Simulate the CI pipeline locally
+npm ci
+./scripts/aggregate.sh
+./scripts/validate.sh
+docker-compose up -d --build
+curl http://localhost:8080/partner/orders
+docker-compose down
+```
+
 ## Troubleshooting
 
 ### Pipeline Fails with "yq not found"
@@ -282,4 +315,5 @@ npm install
 - Authentication (Keycloak/JWT validation)
 - Rate limiting
 - Breaking change detection (oasdiff)
-- CI/CD integration
+- Container registry push
+- Deployment to staging/production

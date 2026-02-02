@@ -1,0 +1,76 @@
+stages:
+  - validate
+  - aggregate
+  - lint
+  - build
+  - test
+
+variables:
+  DOCKER_DRIVER: overlay2
+
+# Base image with Node.js, yq, jq
+default:
+  image: node:20-alpine
+  before_script:
+    - apk add --no-cache yq jq bash curl
+
+# Stage 1: Validate dependencies exist
+validate:
+  stage: validate
+  script:
+    - yq --version
+    - jq --version
+    - npm ci
+
+# Stage 2: Run spec aggregation pipeline
+aggregate:
+  stage: aggregate
+  script:
+    - npm ci
+    - ./scripts/aggregate.sh
+  artifacts:
+    paths:
+      - governance/specs/
+      - governance/output/partner-api.yaml
+      - gateway/krakend.json
+    expire_in: 1 week
+
+# Stage 3: Validate specs with Spectral
+lint:
+  stage: lint
+  needs: [aggregate]
+  script:
+    - npm ci
+    - ./scripts/validate.sh
+
+# Stage 4: Build Docker images (main branch only)
+build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  needs: [aggregate]
+  before_script: []
+  script:
+    - docker compose build
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Stage 5: Integration tests (main branch only)
+test:
+  stage: test
+  image: docker:24
+  services:
+    - docker:24-dind
+  needs: [build]
+  before_script: []
+  script:
+    - apk add --no-cache curl jq
+    - docker compose up -d --build
+    - sleep 10
+    - curl -f http://docker:8080/__health
+    - curl -f http://docker:8080/partner/orders | jq .
+    - curl -f http://docker:8080/partner/users | jq .
+    - docker compose down
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
