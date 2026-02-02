@@ -1,0 +1,13 @@
+{
+  "name": "papi-aggregation",
+  "version": "1.0.0",
+  "description": "Partner API spec aggregation pipeline",
+  "private": true,
+  "scripts": {
+    "aggregate": "./scripts/aggregate.sh",
+    "merge": "openapi-merge-cli --config governance/openapi-merge.yaml"
+  },
+  "devDependencies": {
+    "openapi-merge-cli": "^1.3.1"
+  }
+}

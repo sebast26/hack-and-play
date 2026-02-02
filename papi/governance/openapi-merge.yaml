@@ -1,0 +1,4 @@
+inputs:
+  - inputFile: ./specs/orders/openapi.yaml
+  - inputFile: ./specs/users/openapi.yaml
+output: ./output/partner-api.yaml

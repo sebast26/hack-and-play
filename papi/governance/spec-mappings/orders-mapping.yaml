@@ -1,8 +1,11 @@
 # Orders Service Spec Mapping
 # Transforms internal Orders API spec to Partner API spec
 
-source_base_path: /api/v3
+source_base_path: /api/v3/orders
 target_base_path: /partner/orders
+
+backend:
+  host: http://orders:8081
 
 include:
   tags:

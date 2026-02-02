@@ -1,8 +1,11 @@
 # Users Service Spec Mapping
 # Transforms internal Users API spec to Partner API spec
 
-source_base_path: /api/v1
+source_base_path: /api/v1/users
 target_base_path: /partner/users
+
+backend:
+  host: http://users:8082
 
 include:
   tags:
