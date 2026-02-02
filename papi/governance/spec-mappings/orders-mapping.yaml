@@ -1,0 +1,20 @@
+# Orders Service Spec Mapping
+# Transforms internal Orders API spec to Partner API spec
+
+source_base_path: /api/v3
+target_base_path: /partner/orders
+
+include:
+  tags:
+    - partner
+
+exclude:
+  paths: []
+  tags:
+    - internal
+    - admin
+
+schema_modifications:
+  prefix: Orders
+  remove_fields: []
+  rename_fields: {}

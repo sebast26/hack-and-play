@@ -1,0 +1,30 @@
+services:
+  gateway:
+    image: devopsfaith/krakend:2.5
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./gateway/krakend.json:/etc/krakend/krakend.json:ro
+    depends_on:
+      - orders
+      - users
+    networks:
+      - partner-api
+
+  orders:
+    build: ./mocks/orders
+    expose:
+      - "8081"
+    networks:
+      - partner-api
+
+  users:
+    build: ./mocks/users
+    expose:
+      - "8082"
+    networks:
+      - partner-api
+
+networks:
+  partner-api:
+    driver: bridge

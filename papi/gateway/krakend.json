@@ -1,0 +1,64 @@
+{
+  "$schema": "https://www.krakend.io/schema/krakend.json",
+  "version": 3,
+  "name": "Partner API Gateway",
+  "timeout": "5s",
+  "cache_ttl": "0s",
+  "output_encoding": "json",
+  "port": 8080,
+  "extra_config": {
+    "router": {
+      "return_error_msg": true
+    }
+  },
+  "endpoints": [
+    {
+      "endpoint": "/partner/orders",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/api/v3/orders",
+          "host": ["http://orders:8081"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/partner/orders/{id}",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/api/v3/orders/{id}",
+          "host": ["http://orders:8081"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/partner/users",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users",
+          "host": ["http://users:8082"],
+          "encoding": "json"
+        }
+      ]
+    },
+    {
+      "endpoint": "/partner/users/{id}",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users/{id}",
+          "host": ["http://users:8082"],
+          "encoding": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+openapi: 3.0.3
+info:
+  title: Users Service API
+  description: Internal Users Service API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8082
+tags:
+  - name: users
+  - name: partner
+paths:
+  /api/v1/users:
+    get:
+      tags:
+        - users
+        - partner
+      summary: List all users
+      description: Returns a list of all users in the system
+      operationId: listUsers
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  total:
+                    type: integer
+                    description: Total number of users
+  /api/v1/users/{id}:
+    get:
+      tags:
+        - users
+        - partner
+      summary: Get user by ID
+      description: Returns a single user by their ID
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: Unique user identifier
+        email:
+          type: string
+          format: email
+          description: User email address
+        name:
+          type: string
+          description: User full name
+        company:
+          type: string
+          description: Company name
+        created_at:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+      required:
+        - user_id
+        - email
+        - name
+        - created_at
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string

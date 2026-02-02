@@ -1,0 +1,20 @@
+# Users Service Spec Mapping
+# Transforms internal Users API spec to Partner API spec
+
+source_base_path: /api/v1
+target_base_path: /partner/users
+
+include:
+  tags:
+    - partner
+
+exclude:
+  paths: []
+  tags:
+    - internal
+    - admin
+
+schema_modifications:
+  prefix: Users
+  remove_fields: []
+  rename_fields: {}

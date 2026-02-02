@@ -1,0 +1,23 @@
+# Partner API Governance Manifest
+# Defines which internal team specs are included in the Partner API
+
+version: "1.0"
+
+sources:
+  - name: orders
+    repository: local
+    path: ../mocks/orders/openapi.yaml
+    ref: local
+    spec_mapping: orders-mapping.yaml
+    enabled: true
+    owner_team: orders
+    owner_contact: orders-team@example.com
+
+  - name: users
+    repository: local
+    path: ../mocks/users/openapi.yaml
+    ref: local
+    spec_mapping: users-mapping.yaml
+    enabled: true
+    owner_team: users
+    owner_contact: users-team@example.com
