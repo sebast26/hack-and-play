@@ -1,0 +1,137 @@
+# Partner API Implementation Test Configuration
+# This file configures how Schemathesis tests your API endpoints.
+#
+# Test Modes:
+#   full    - Run comprehensive property-based tests (100+ examples)
+#   limited - Run limited tests (10 examples) - good for mutating endpoints
+#   skip    - Skip testing this endpoint entirely
+#
+# Default Behavior:
+#   GET requests:    full (safe to test extensively)
+#   POST requests:   limited (creates data)
+#   PUT requests:    limited (modifies data)
+#   PATCH requests:  limited (modifies data)
+#   DELETE requests: skip (destructive by default)
+
+# =============================================================================
+# Global Settings
+# =============================================================================
+global:
+  # Default test mode for each HTTP method
+  defaults:
+    GET: full
+    POST: limited
+    PUT: limited
+    PATCH: limited
+    DELETE: skip
+
+  # Number of test examples per mode
+  examples:
+    full: 100
+    limited: 10
+
+  # Request timeout in milliseconds
+  request_timeout: 10000
+
+  # Whether to validate response schemas
+  validate_schemas: true
+
+  # Whether to use stateful testing (link related requests)
+  stateful_testing: true
+
+# =============================================================================
+# Endpoint-Specific Configuration
+# =============================================================================
+# Override defaults for specific endpoints
+endpoints:
+  # Example: Test GET /partner/orders with full mode (default)
+  # "/partner/orders":
+  #   GET: full
+
+  # Example: Skip POST endpoint that has side effects
+  # "/partner/orders":
+  #   POST: skip
+
+  # Example: Limit testing for endpoints that create resources
+  # "/partner/users":
+  #   POST: limited
+
+  # Example: Full testing for a specific endpoint
+  # "/partner/orders/{id}":
+  #   GET: full
+  #   PUT: limited
+  #   DELETE: skip
+
+# =============================================================================
+# Authentication Configuration
+# =============================================================================
+# Configure authentication for tests (if required)
+auth:
+  # Type: none, api_key, bearer, basic
+  type: none
+
+  # API Key authentication
+  # api_key:
+  #   header: X-API-Key
+  #   value: ${API_KEY}  # Use environment variable
+
+  # Bearer token authentication
+  # bearer:
+  #   token: ${AUTH_TOKEN}
+
+  # Basic authentication
+  # basic:
+  #   username: ${AUTH_USER}
+  #   password: ${AUTH_PASS}
+
+# =============================================================================
+# Test Data Configuration
+# =============================================================================
+# Provide example data for path parameters and request bodies
+test_data:
+  # Path parameters
+  path_params:
+    # id: "test-id-123"
+    # order_id: "order-001"
+    # user_id: "user-001"
+
+  # Query parameters
+  query_params:
+    # limit: 10
+    # offset: 0
+
+  # Headers to include in all requests
+  headers:
+    # X-Request-ID: "test-request-id"
+    # X-Correlation-ID: "test-correlation-id"
+
+# =============================================================================
+# Exclusions
+# =============================================================================
+# Endpoints to completely exclude from testing
+exclude:
+  # Endpoints that are known to be problematic or under development
+  endpoints: []
+    # - "/partner/experimental/*"
+    # - "/partner/internal/*"
+
+  # Operations to exclude (by operationId)
+  operations: []
+    # - "dangerousOperation"
+    # - "experimentalFeature"
+
+# =============================================================================
+# Reporting
+# =============================================================================
+reporting:
+  # Generate JUnit XML report (for CI integration)
+  junit: true
+
+  # Generate HTML report
+  html: false
+
+  # Include request/response details in failures
+  verbose_failures: true
+
+  # Maximum failures to report before stopping
+  max_failures: 50

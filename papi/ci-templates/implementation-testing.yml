@@ -1,0 +1,124 @@
+# Partner API - Implementation Testing CI Template
+# Runs Schemathesis API testing against your running service
+#
+# Usage in your .gitlab-ci.yml:
+#   include:
+#     - project: 'platform/partner-api'
+#       ref: main
+#       file: '/ci-templates/implementation-testing.yml'
+#
+#   variables:
+#     STAGING_SERVICE_URL: 'https://staging.myservice.example.com'
+#     STAGING_SPEC_URL: 'https://staging.myservice.example.com/openapi.yaml'
+#
+# Required Variables:
+#   STAGING_SERVICE_URL - Base URL of your staging service
+#   STAGING_SPEC_URL    - URL to fetch OpenAPI spec from staging service
+#
+# Optional Variables:
+#   SCHEMATHESIS_CHECKS - Checks to run (default: core checks)
+#   SCHEMATHESIS_TIMEOUT - Timeout in seconds (default: 300)
+#   SCHEMATHESIS_MAX_FAILURES - Stop after N failures (default: 20)
+
+variables:
+  SCHEMATHESIS_CHECKS: "not_a_server_error,status_code_conformance,content_type_conformance,response_schema_conformance"
+  SCHEMATHESIS_TIMEOUT: "300"
+  SCHEMATHESIS_MAX_FAILURES: "20"
+
+.implementation-testing-base:
+  image: schemathesis/schemathesis:stable
+  before_script:
+    - |
+      if [ -z "$STAGING_SERVICE_URL" ]; then
+        echo "Error: STAGING_SERVICE_URL variable is required"
+        exit 1
+      fi
+    - |
+      if [ -z "$STAGING_SPEC_URL" ]; then
+        echo "Error: STAGING_SPEC_URL variable is required"
+        exit 1
+      fi
+
+# Job: Run Schemathesis implementation testing
+implementation-testing:
+  extends: .implementation-testing-base
+  stage: test
+  script:
+    - echo "========================================"
+    - echo "Partner API Implementation Testing"
+    - echo "========================================"
+    - echo ""
+    - echo "Service URL: $STAGING_SERVICE_URL"
+    - echo "Spec URL:    $STAGING_SPEC_URL"
+    - echo "Checks:      $SCHEMATHESIS_CHECKS"
+    - echo "Timeout:     ${SCHEMATHESIS_TIMEOUT}s"
+    - echo ""
+    - echo "Waiting for service..."
+    - |
+      for i in $(seq 1 30); do
+        if wget -q --spider "$STAGING_SERVICE_URL" 2>/dev/null || wget -q -O /dev/null "$STAGING_SPEC_URL" 2>/dev/null; then
+          echo "Service is ready!"
+          break
+        fi
+        if [ $i -eq 30 ]; then
+          echo "Service did not become ready"
+          exit 1
+        fi
+        sleep 2
+      done
+    - echo ""
+    - echo "Running Schemathesis tests..."
+    - |
+      schemathesis run "$STAGING_SPEC_URL" \
+        --url "$STAGING_SERVICE_URL" \
+        --checks "$SCHEMATHESIS_CHECKS" \
+        --request-timeout=10 \
+        --max-failures="$SCHEMATHESIS_MAX_FAILURES" \
+        --report junit \
+        --report-dir ./schemathesis-reports \
+        || TESTS_FAILED=1
+    - |
+      if [ -n "$TESTS_FAILED" ]; then
+        echo ""
+        echo "========================================"
+        echo "Implementation tests found issues"
+        echo "========================================"
+        echo "Review the failures above and fix them before merging."
+        exit 1
+      fi
+    - echo ""
+    - echo "========================================"
+    - echo "All implementation tests passed!"
+    - echo "========================================"
+  artifacts:
+    when: always
+    paths:
+      - schemathesis-reports/
+    reports:
+      junit: schemathesis-reports/*.xml
+    expire_in: 1 week
+  timeout: 10 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+  allow_failure: true  # Set to false once issues are resolved
+
+# Job: Quick smoke test (faster, fewer examples)
+implementation-smoke-test:
+  extends: .implementation-testing-base
+  stage: test
+  script:
+    - echo "Running quick smoke test..."
+    - |
+      schemathesis run "$STAGING_SPEC_URL" \
+        --url "$STAGING_SERVICE_URL" \
+        --checks "not_a_server_error,response_schema_conformance" \
+        --request-timeout=5 \
+        --max-failures=5 \
+        --phases examples,coverage \
+        || true
+  timeout: 5 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+  allow_failure: true

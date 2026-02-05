@@ -3,7 +3,8 @@
     "allow": [
       "Bash(./scripts/breaking-change-check.sh:*)",
       "Bash(./scripts/aggregate.sh:*)",
-      "Bash(./scripts/validate.sh:*)"
+      "Bash(./scripts/validate.sh:*)",
+      "Bash(docker compose:*)"
     ]
   }
 }

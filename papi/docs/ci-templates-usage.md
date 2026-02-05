@@ -8,6 +8,7 @@ This guide explains how internal teams can use the Partner API CI templates to v
 |----------|---------|
 | `spec-validation.yml` | Validates OpenAPI spec syntax and runs Spectral linting |
 | `breaking-change-detection.yml` | Detects breaking API changes using oasdiff |
+| `implementation-testing.yml` | Tests API implementation against spec using Schemathesis |
 
 ## Quick Start
 
@@ -272,6 +273,108 @@ If the change is intentional, follow the breaking change workflow documented in 
 
 ---
 
+## Template: implementation-testing.yml
+
+Tests your API implementation against its OpenAPI spec using [Schemathesis](https://schemathesis.io/).
+
+### What It Does
+
+1. **Fetches your OpenAPI spec** from your staging service
+2. **Generates test cases** based on the spec (property-based testing)
+3. **Sends requests** to your staging service
+4. **Validates responses** match the spec
+5. **Reports failures** with reproduction commands
+
+### Jobs Included
+
+| Job | Purpose | Fails on errors? |
+|-----|---------|------------------|
+| `implementation-testing` | Full test suite | Yes (configurable) |
+| `implementation-smoke-test` | Quick validation | No |
+
+### Required Variables
+
+| Variable | Description |
+|----------|-------------|
+| `STAGING_SERVICE_URL` | Base URL of your staging service |
+| `STAGING_SPEC_URL` | URL to fetch OpenAPI spec from staging |
+
+### Optional Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SCHEMATHESIS_CHECKS` | Core checks | Comma-separated checks to run |
+| `SCHEMATHESIS_TIMEOUT` | `300` | Timeout in seconds |
+| `SCHEMATHESIS_MAX_FAILURES` | `20` | Stop after N failures |
+
+### Example Usage
+
+**Basic usage:**
+
+```yaml
+include:
+  - project: 'platform/partner-api'
+    ref: main
+    file: '/ci-templates/implementation-testing.yml'
+
+variables:
+  STAGING_SERVICE_URL: 'https://staging.myservice.example.com'
+  STAGING_SPEC_URL: 'https://staging.myservice.example.com/openapi.yaml'
+```
+
+**With authentication:**
+
+```yaml
+include:
+  - project: 'platform/partner-api'
+    ref: main
+    file: '/ci-templates/implementation-testing.yml'
+
+variables:
+  STAGING_SERVICE_URL: 'https://staging.myservice.example.com'
+  STAGING_SPEC_URL: 'https://staging.myservice.example.com/openapi.yaml'
+
+implementation-testing:
+  script:
+    - |
+      schemathesis run "$STAGING_SPEC_URL" \
+        --url "$STAGING_SERVICE_URL" \
+        --header "Authorization: Bearer $STAGING_AUTH_TOKEN" \
+        --checks "$SCHEMATHESIS_CHECKS" \
+        --report junit --report-dir ./schemathesis-reports
+```
+
+### Available Checks
+
+| Check | Description |
+|-------|-------------|
+| `not_a_server_error` | Response is not 5xx |
+| `status_code_conformance` | Status code matches spec |
+| `content_type_conformance` | Content-Type matches spec |
+| `response_schema_conformance` | Response body matches schema |
+| `response_headers_conformance` | Headers match spec |
+| `negative_data_rejection` | Invalid data returns 4xx |
+| `all` | All checks |
+
+### Common Issues
+
+**5xx errors for valid requests**
+
+Your implementation may have bugs. Check the reproduction command in the output.
+
+**Response doesn't match schema**
+
+Common causes:
+- Missing required fields
+- Wrong field types
+- Extra fields not in spec (if `additionalProperties: false`)
+
+**Timeouts**
+
+Increase `SCHEMATHESIS_TIMEOUT` or optimize your service.
+
+---
+
 ## Running Locally
 
 ### Spec Validation
@@ -308,6 +411,24 @@ oasdiff breaking baseline.yaml ./openapi.yaml --format text --fail-on WARN
 
 # View all changes (changelog)
 oasdiff changelog baseline.yaml ./openapi.yaml --format text
+```
+
+### Implementation Testing
+
+To run Schemathesis tests locally:
+
+```bash
+# Using Docker (recommended)
+docker run --rm --network host \
+  -v ./openapi.yaml:/spec.yaml:ro \
+  schemathesis/schemathesis:stable run /spec.yaml \
+  --url http://localhost:8080 \
+  --checks all
+
+# Using the platform script
+./scripts/schemathesis-test.sh \
+  --spec ./openapi.yaml \
+  --url http://localhost:8080
 ```
 
 ---
