@@ -1,6 +1,7 @@
 stages:
   - validate
   - aggregate
+  - breaking-change
   - lint
   - build
   - test
@@ -35,7 +36,15 @@ aggregate:
       - gateway/krakend.json
     expire_in: 1 week
 
-# Stage 3: Validate specs with Spectral
+# Stage 3: Check for breaking changes
+breaking-change:
+  stage: breaking-change
+  needs: [aggregate]
+  script:
+    - ./scripts/breaking-change-check.sh
+  allow_failure: false
+
+# Stage 4: Validate specs with Spectral
 lint:
   stage: lint
   needs: [aggregate]
@@ -43,7 +52,7 @@ lint:
     - npm ci
     - ./scripts/validate.sh
 
-# Stage 4: Build Docker images (main branch only)
+# Stage 5: Build Docker images (main branch only)
 build:
   stage: build
   image: docker:24
@@ -56,7 +65,7 @@ build:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-# Stage 5: Integration tests (main branch only)
+# Stage 6: Integration tests (main branch only)
 test:
   stage: test
   image: docker:24

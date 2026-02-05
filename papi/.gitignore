@@ -1,1 +1,4 @@
 node_modules
+
+# Downloaded binaries
+bin/
