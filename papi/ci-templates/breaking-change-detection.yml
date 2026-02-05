@@ -1,0 +1,155 @@
+# Partner API - Breaking Change Detection CI Template
+# Detects breaking changes in OpenAPI specs using oasdiff
+#
+# Usage in your .gitlab-ci.yml:
+#   include:
+#     - project: 'platform/partner-api'
+#       ref: main
+#       file: '/ci-templates/breaking-change-detection.yml'
+#
+#   variables:
+#     OPENAPI_SPEC_PATH: './openapi.yaml'
+#     BASELINE_SPEC_URL: 'https://gitlab.example.com/api/v4/projects/123/repository/files/governance%2Fbaseline%2Fpartner-api.yaml/raw?ref=main'
+#
+# Required Variables:
+#   OPENAPI_SPEC_PATH - Path to the current OpenAPI spec file to check
+#   BASELINE_SPEC_URL - URL to fetch the baseline spec for comparison
+#
+# Optional Variables:
+#   OASDIFF_VERSION - Version of oasdiff to use (default: latest)
+#   FAIL_ON_SEVERITY - Minimum severity to fail on: ERR, WARN, INFO (default: WARN)
+
+variables:
+  OASDIFF_VERSION: "latest"
+  FAIL_ON_SEVERITY: "WARN"
+
+.breaking-change-base:
+  image: alpine:3.19
+  before_script:
+    - apk add --no-cache curl tar
+    # Install oasdiff
+    - |
+      echo "Installing oasdiff..."
+      OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+      ARCH=$(uname -m)
+      case "$ARCH" in
+        x86_64) ARCH="amd64" ;;
+        aarch64|arm64) ARCH="arm64" ;;
+        *) echo "Error: Unsupported architecture: $ARCH"; exit 1 ;;
+      esac
+      # macOS uses universal binary
+      if [ "$OS" = "darwin" ]; then
+        ARCH="all"
+      fi
+      # Get version
+      if [ "$OASDIFF_VERSION" = "latest" ]; then
+        VERSION=$(curl -sL https://api.github.com/repos/oasdiff/oasdiff/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+      else
+        VERSION="$OASDIFF_VERSION"
+      fi
+      if [ -z "$VERSION" ]; then
+        echo "Error: Could not determine oasdiff version"
+        exit 1
+      fi
+      DOWNLOAD_URL="https://github.com/oasdiff/oasdiff/releases/download/v${VERSION}/oasdiff_${VERSION}_${OS}_${ARCH}.tar.gz"
+      echo "  Downloading oasdiff v${VERSION}..."
+      curl -sL "$DOWNLOAD_URL" | tar -xz -C /usr/local/bin oasdiff
+      chmod +x /usr/local/bin/oasdiff
+      echo "  Installed: $(oasdiff --version 2>&1 | head -1)"
+
+# Job: Detect breaking changes between current spec and baseline
+breaking-change-detection:
+  extends: .breaking-change-base
+  stage: validate
+  script:
+    - |
+      if [ -z "$OPENAPI_SPEC_PATH" ]; then
+        echo "Error: OPENAPI_SPEC_PATH variable is required"
+        echo "Set it to the path of your OpenAPI spec file"
+        exit 1
+      fi
+    - |
+      if [ -z "$BASELINE_SPEC_URL" ]; then
+        echo "Error: BASELINE_SPEC_URL variable is required"
+        echo "Set it to the URL of the baseline spec to compare against"
+        exit 1
+      fi
+    - |
+      if [ ! -f "$OPENAPI_SPEC_PATH" ]; then
+        echo "Error: OpenAPI spec not found at: $OPENAPI_SPEC_PATH"
+        exit 1
+      fi
+    - echo "========================================"
+    - echo "Partner API Breaking Change Detection"
+    - echo "========================================"
+    - echo ""
+    - echo "Current spec: $OPENAPI_SPEC_PATH"
+    - echo "Baseline URL: $BASELINE_SPEC_URL"
+    - echo "Fail on: $FAIL_ON_SEVERITY"
+    - echo ""
+    - echo "Fetching baseline spec..."
+    - |
+      curl -sSfL "$BASELINE_SPEC_URL" -o /tmp/baseline-spec.yaml || {
+        echo "Error: Failed to fetch baseline spec from: $BASELINE_SPEC_URL"
+        echo ""
+        echo "Possible causes:"
+        echo "  - URL is incorrect"
+        echo "  - Authentication required (set CI_JOB_TOKEN or PRIVATE_TOKEN header)"
+        echo "  - Network issue"
+        exit 1
+      }
+    - echo "  Baseline spec fetched successfully"
+    - echo ""
+    - echo "Checking for breaking changes..."
+    - echo ""
+    - |
+      if oasdiff breaking /tmp/baseline-spec.yaml "$OPENAPI_SPEC_PATH" --format text --fail-on "$FAIL_ON_SEVERITY"; then
+        echo ""
+        echo "========================================"
+        echo "No breaking changes detected."
+        echo "========================================"
+        exit 0
+      else
+        EXIT_CODE=$?
+        echo ""
+        echo "========================================"
+        echo "BREAKING CHANGES DETECTED!"
+        echo "========================================"
+        echo ""
+        echo "Next steps:"
+        echo "  1. If this is intentional, coordinate with the platform team"
+        echo "  2. Post in #partner-api-changes Slack channel"
+        echo "  3. Create a JIRA ticket with change details"
+        echo "  4. See: docs/breaking-change-workflow.md"
+        echo ""
+        exit $EXIT_CODE
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+# Job: Show breaking changes as a diff (informational, does not fail)
+breaking-change-diff:
+  extends: .breaking-change-base
+  stage: validate
+  script:
+    - |
+      if [ -z "$OPENAPI_SPEC_PATH" ] || [ -z "$BASELINE_SPEC_URL" ]; then
+        echo "Skipping diff: OPENAPI_SPEC_PATH and BASELINE_SPEC_URL required"
+        exit 0
+      fi
+    - |
+      if [ ! -f "$OPENAPI_SPEC_PATH" ]; then
+        echo "Skipping diff: spec file not found"
+        exit 0
+      fi
+    - curl -sSfL "$BASELINE_SPEC_URL" -o /tmp/baseline-spec.yaml || exit 0
+    - echo "========================================"
+    - echo "API Changes Summary"
+    - echo "========================================"
+    - echo ""
+    - oasdiff changelog /tmp/baseline-spec.yaml "$OPENAPI_SPEC_PATH" --format text || true
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
