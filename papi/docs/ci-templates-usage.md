@@ -6,25 +6,39 @@ This guide explains how internal teams can use the Partner API CI templates to v
 
 | Template | Purpose |
 |----------|---------|
+| `partner-api-checks.yml` | **Recommended** - Combined template that runs all three checks |
 | `spec-validation.yml` | Validates OpenAPI spec syntax and runs Spectral linting |
 | `breaking-change-detection.yml` | Detects breaking API changes using oasdiff |
 | `implementation-testing.yml` | Tests API implementation against spec using Schemathesis |
 
-## Quick Start
+## Quick Start (Recommended)
 
-Add the following to your `.gitlab-ci.yml`:
+For most teams, we recommend using the combined template that runs all checks:
 
 ```yaml
 include:
   - project: 'platform/partner-api'
-    ref: main
-    file: '/ci-templates/spec-validation.yml'
+    ref: v1  # Pin to major version for stability
+    file: '/ci-templates/partner-api-checks.yml'
 
 variables:
-  OPENAPI_SPEC_PATH: './openapi.yaml'
+  OPENAPI_SPEC_PATH: './api/openapi.yaml'
+  BASELINE_SPEC_URL: 'https://gitlab.example.com/api/v4/projects/123/repository/files/governance%2Fbaseline%2Fpartner-api.yaml/raw?ref=main'
+  STAGING_SERVICE_URL: 'https://staging.myservice.example.com'
+  STAGING_SPEC_URL: 'https://staging.myservice.example.com/openapi.yaml'
+  STAGING_AUTH_TOKEN: $MY_SERVICE_STAGING_TOKEN  # From CI variables
 ```
 
-This will run spec validation on every merge request and branch push.
+This runs all three validation layers in order:
+1. **Spec Validation** - Fast syntax and linting checks
+2. **Breaking Change Detection** - Compares against baseline
+3. **Implementation Testing** - Tests your running service
+
+If earlier stages fail, later stages are skipped for faster feedback.
+
+## Individual Templates
+
+You can also use templates individually if you only need specific checks.
 
 ---
 
@@ -283,13 +297,14 @@ Tests your API implementation against its OpenAPI spec using [Schemathesis](http
 2. **Generates test cases** based on the spec (property-based testing)
 3. **Sends requests** to your staging service
 4. **Validates responses** match the spec
-5. **Reports failures** with reproduction commands
+5. **Retries on transient failures** (up to 2 retries by default)
+6. **Reports failures** with reproduction commands
 
 ### Jobs Included
 
 | Job | Purpose | Fails on errors? |
 |-----|---------|------------------|
-| `implementation-testing` | Full test suite | Yes (configurable) |
+| `implementation-testing` | Full test suite with retries | Yes (configurable) |
 | `implementation-smoke-test` | Quick validation | No |
 
 ### Required Variables
@@ -303,9 +318,13 @@ Tests your API implementation against its OpenAPI spec using [Schemathesis](http
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `STAGING_AUTH_TOKEN` | (none) | Bearer token for authenticated endpoints (store as masked CI variable) |
 | `SCHEMATHESIS_CHECKS` | Core checks | Comma-separated checks to run |
-| `SCHEMATHESIS_TIMEOUT` | `300` | Timeout in seconds |
+| `SCHEMATHESIS_WORKERS` | `4` | Number of parallel test workers |
+| `SCHEMATHESIS_MAX_EXAMPLES` | `100` | Max test cases per endpoint |
 | `SCHEMATHESIS_MAX_FAILURES` | `20` | Stop after N failures |
+| `TEST_TIMEOUT_MINUTES` | `60` | Global timeout for test job |
+| `TEST_RETRIES` | `2` | Number of retries on failure |
 
 ### Example Usage
 
@@ -371,7 +390,152 @@ Common causes:
 
 **Timeouts**
 
-Increase `SCHEMATHESIS_TIMEOUT` or optimize your service.
+Increase `TEST_TIMEOUT_MINUTES` or optimize your service. The default is 60 minutes.
+
+---
+
+## Template: partner-api-checks.yml (Combined)
+
+The combined template runs all three validation layers in sequence. This is the **recommended** approach for most teams.
+
+### What It Does
+
+1. **Spec Validation** (fastest) - Validates syntax and runs Spectral linting
+2. **Breaking Change Detection** (medium) - Compares against baseline spec
+3. **Implementation Testing** (slowest) - Tests your running service
+
+The pipeline **short-circuits**: if spec validation fails, later stages are skipped.
+
+### Required Variables
+
+| Variable | Description |
+|----------|-------------|
+| `OPENAPI_SPEC_PATH` | Path to your OpenAPI spec file |
+| `BASELINE_SPEC_URL` | URL to fetch baseline spec for breaking change detection |
+| `STAGING_SERVICE_URL` | Base URL of your staging service |
+| `STAGING_SPEC_URL` | URL to fetch OpenAPI spec from staging |
+
+### Optional Variables
+
+All optional variables from the individual templates are supported, plus:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SKIP_SPEC_VALIDATION` | (empty) | Set to `true` to skip spec validation |
+| `SKIP_BREAKING_CHANGE` | (empty) | Set to `true` to skip breaking change detection |
+| `SKIP_IMPLEMENTATION_TESTING` | (empty) | Set to `true` to skip implementation testing |
+
+### Example Usage
+
+**Full configuration:**
+
+```yaml
+include:
+  - project: 'platform/partner-api'
+    ref: v1
+    file: '/ci-templates/partner-api-checks.yml'
+
+variables:
+  # Required
+  OPENAPI_SPEC_PATH: './api/openapi.yaml'
+  BASELINE_SPEC_URL: 'https://gitlab.example.com/api/v4/projects/123/repository/files/governance%2Fbaseline%2Fpartner-api.yaml/raw?ref=main'
+  STAGING_SERVICE_URL: 'https://staging.orders.example.com'
+  STAGING_SPEC_URL: 'https://staging.orders.example.com/openapi.yaml'
+
+  # Optional - Authentication
+  STAGING_AUTH_TOKEN: $ORDERS_STAGING_TOKEN  # Masked CI variable
+
+  # Optional - Customize behavior
+  SPECTRAL_FAIL_SEVERITY: 'error'
+  FAIL_ON_SEVERITY: 'WARN'
+  TEST_RETRIES: '2'
+```
+
+**Skip implementation testing (for spec-only changes):**
+
+```yaml
+include:
+  - project: 'platform/partner-api'
+    ref: v1
+    file: '/ci-templates/partner-api-checks.yml'
+
+variables:
+  OPENAPI_SPEC_PATH: './api/openapi.yaml'
+  BASELINE_SPEC_URL: 'https://example.com/baseline.yaml'
+  STAGING_SERVICE_URL: 'https://staging.example.com'
+  STAGING_SPEC_URL: 'https://staging.example.com/openapi.yaml'
+  SKIP_IMPLEMENTATION_TESTING: 'true'
+```
+
+**Without breaking change detection (no baseline yet):**
+
+```yaml
+include:
+  - project: 'platform/partner-api'
+    ref: v1
+    file: '/ci-templates/partner-api-checks.yml'
+
+variables:
+  OPENAPI_SPEC_PATH: './api/openapi.yaml'
+  # BASELINE_SPEC_URL not set - breaking change detection skipped automatically
+  STAGING_SERVICE_URL: 'https://staging.example.com'
+  STAGING_SPEC_URL: 'https://staging.example.com/openapi.yaml'
+```
+
+### What You'll See
+
+**On success:**
+
+```
+✓ Spec Validation: Passed
+  - OpenAPI syntax valid
+  - 0 linting errors
+
+✓ Breaking Change Detection: Passed
+  - No breaking changes to Partner API
+
+✓ Implementation Testing: Passed
+  - All responses match OpenAPI spec
+```
+
+**On spec validation failure:**
+
+```
+✗ Spec Validation: Failed
+
+Linting errors found:
+  api/openapi.yaml:45:5 - operation-description: Operation must have a description
+
+Fix these errors and push again.
+```
+
+**On breaking change failure:**
+
+```
+✗ Breaking Change Detection: FAILED
+
+Breaking changes detected in partner-exposed endpoints.
+
+Next steps:
+  1. Post in #partner-api-changes Slack channel
+  2. Create a JIRA ticket with change details
+  3. See: docs/breaking-change-workflow.md
+
+DO NOT merge until coordinated with platform team.
+```
+
+**On implementation testing failure (after retries):**
+
+```
+✗ Implementation Testing: FAILED
+
+Your service responses don't match your OpenAPI spec.
+Review the failures above and either:
+  - Update your code to match the spec, or
+  - Update the spec to match your code
+
+Note: Tests run against your deployed staging service.
+```
 
 ---
 
@@ -429,7 +593,51 @@ docker run --rm --network host \
 ./scripts/schemathesis-test.sh \
   --spec ./openapi.yaml \
   --url http://localhost:8080
+
+# With authentication
+docker run --rm --network host \
+  -v ./openapi.yaml:/spec.yaml:ro \
+  schemathesis/schemathesis:stable run /spec.yaml \
+  --url http://localhost:8080 \
+  --header "Authorization: Bearer YOUR_TOKEN" \
+  --checks all
 ```
+
+### All Three Checks Locally
+
+Run all checks in sequence locally:
+
+```bash
+# 1. Spec Validation
+npm install -g @stoplight/spectral-cli
+spectral lint ./openapi.yaml
+
+# 2. Breaking Change Detection
+brew install oasdiff  # or download binary
+oasdiff breaking baseline.yaml ./openapi.yaml --format text --fail-on WARN
+
+# 3. Implementation Testing
+./scripts/schemathesis-test.sh --spec ./openapi.yaml --url http://localhost:8080
+```
+
+---
+
+## Authentication Setup
+
+For implementation testing against authenticated endpoints:
+
+1. **Create a service account** or test user in your staging environment
+2. **Generate a token** with access to all Partner API endpoints
+3. **Store as masked CI variable** in your GitLab project:
+   - Go to Settings → CI/CD → Variables
+   - Add variable: `MY_SERVICE_STAGING_TOKEN`
+   - Check "Mask variable" to hide in logs
+   - Check "Protect variable" if only needed on protected branches
+4. **Reference in your `.gitlab-ci.yml`**:
+   ```yaml
+   variables:
+     STAGING_AUTH_TOKEN: $MY_SERVICE_STAGING_TOKEN
+   ```
 
 ---
 

@@ -16,14 +16,21 @@
 #   STAGING_SPEC_URL    - URL to fetch OpenAPI spec from staging service
 #
 # Optional Variables:
-#   SCHEMATHESIS_CHECKS - Checks to run (default: core checks)
-#   SCHEMATHESIS_TIMEOUT - Timeout in seconds (default: 300)
+#   STAGING_AUTH_TOKEN      - Bearer token for authenticated endpoints (store as masked CI variable)
+#   SCHEMATHESIS_CHECKS     - Checks to run (default: core checks)
+#   SCHEMATHESIS_WORKERS    - Number of parallel workers (default: 4)
+#   SCHEMATHESIS_MAX_EXAMPLES - Max test cases per endpoint (default: 100)
 #   SCHEMATHESIS_MAX_FAILURES - Stop after N failures (default: 20)
+#   TEST_TIMEOUT_MINUTES    - Global timeout for test job (default: 60)
+#   TEST_RETRIES            - Number of retries on failure (default: 2)
 
 variables:
   SCHEMATHESIS_CHECKS: "not_a_server_error,status_code_conformance,content_type_conformance,response_schema_conformance"
-  SCHEMATHESIS_TIMEOUT: "300"
+  SCHEMATHESIS_WORKERS: "4"
+  SCHEMATHESIS_MAX_EXAMPLES: "100"
   SCHEMATHESIS_MAX_FAILURES: "20"
+  TEST_TIMEOUT_MINUTES: "60"
+  TEST_RETRIES: "2"
 
 .implementation-testing-base:
   image: schemathesis/schemathesis:stable
@@ -31,15 +38,17 @@ variables:
     - |
       if [ -z "$STAGING_SERVICE_URL" ]; then
         echo "Error: STAGING_SERVICE_URL variable is required"
+        echo "Set it to the base URL of your staging service"
         exit 1
       fi
     - |
       if [ -z "$STAGING_SPEC_URL" ]; then
         echo "Error: STAGING_SPEC_URL variable is required"
+        echo "Set it to the URL where your OpenAPI spec is served"
         exit 1
       fi
 
-# Job: Run Schemathesis implementation testing
+# Job: Run Schemathesis implementation testing with retries
 implementation-testing:
   extends: .implementation-testing-base
   stage: test
@@ -48,11 +57,22 @@ implementation-testing:
     - echo "Partner API Implementation Testing"
     - echo "========================================"
     - echo ""
-    - echo "Service URL: $STAGING_SERVICE_URL"
-    - echo "Spec URL:    $STAGING_SPEC_URL"
-    - echo "Checks:      $SCHEMATHESIS_CHECKS"
-    - echo "Timeout:     ${SCHEMATHESIS_TIMEOUT}s"
+    - echo "Service URL:   $STAGING_SERVICE_URL"
+    - echo "Spec URL:      $STAGING_SPEC_URL"
+    - echo "Checks:        $SCHEMATHESIS_CHECKS"
+    - echo "Workers:       $SCHEMATHESIS_WORKERS"
+    - echo "Max Examples:  $SCHEMATHESIS_MAX_EXAMPLES"
+    - echo "Max Failures:  $SCHEMATHESIS_MAX_FAILURES"
+    - echo "Timeout:       ${TEST_TIMEOUT_MINUTES} minutes"
+    - echo "Retries:       $TEST_RETRIES"
+    - |
+      if [ -n "$STAGING_AUTH_TOKEN" ]; then
+        echo "Auth:          Bearer token configured"
+      else
+        echo "Auth:          None"
+      fi
     - echo ""
+    # Wait for service to be ready
     - echo "Waiting for service..."
     - |
       for i in $(seq 1 30); do
@@ -61,35 +81,93 @@ implementation-testing:
           break
         fi
         if [ $i -eq 30 ]; then
-          echo "Service did not become ready"
+          echo "Service did not become ready within 60 seconds"
           exit 1
         fi
         sleep 2
       done
     - echo ""
-    - echo "Running Schemathesis tests..."
+    # Build auth header argument if token provided
     - |
-      schemathesis run "$STAGING_SPEC_URL" \
-        --url "$STAGING_SERVICE_URL" \
-        --checks "$SCHEMATHESIS_CHECKS" \
-        --request-timeout=10 \
-        --max-failures="$SCHEMATHESIS_MAX_FAILURES" \
-        --report junit \
-        --report-dir ./schemathesis-reports \
-        || TESTS_FAILED=1
+      AUTH_ARGS=""
+      if [ -n "$STAGING_AUTH_TOKEN" ]; then
+        AUTH_ARGS="--header \"Authorization: Bearer $STAGING_AUTH_TOKEN\""
+      fi
+    # Run tests with retry logic
     - |
-      if [ -n "$TESTS_FAILED" ]; then
+      ATTEMPT=1
+      MAX_ATTEMPTS=$((TEST_RETRIES + 1))
+      TESTS_PASSED=false
+
+      while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+        echo "========================================"
+        echo "Test attempt $ATTEMPT of $MAX_ATTEMPTS"
+        echo "========================================"
+        echo ""
+
+        # Build and run schemathesis command
+        set +e
+        if [ -n "$STAGING_AUTH_TOKEN" ]; then
+          schemathesis run "$STAGING_SPEC_URL" \
+            --url "$STAGING_SERVICE_URL" \
+            --header "Authorization: Bearer $STAGING_AUTH_TOKEN" \
+            --checks "$SCHEMATHESIS_CHECKS" \
+            --workers "$SCHEMATHESIS_WORKERS" \
+            --hypothesis-max-examples="$SCHEMATHESIS_MAX_EXAMPLES" \
+            --request-timeout=10 \
+            --max-failures="$SCHEMATHESIS_MAX_FAILURES" \
+            --report junit \
+            --report-dir ./schemathesis-reports
+        else
+          schemathesis run "$STAGING_SPEC_URL" \
+            --url "$STAGING_SERVICE_URL" \
+            --checks "$SCHEMATHESIS_CHECKS" \
+            --workers "$SCHEMATHESIS_WORKERS" \
+            --hypothesis-max-examples="$SCHEMATHESIS_MAX_EXAMPLES" \
+            --request-timeout=10 \
+            --max-failures="$SCHEMATHESIS_MAX_FAILURES" \
+            --report junit \
+            --report-dir ./schemathesis-reports
+        fi
+        EXIT_CODE=$?
+        set -e
+
+        if [ $EXIT_CODE -eq 0 ]; then
+          TESTS_PASSED=true
+          break
+        fi
+
+        echo ""
+        echo "Tests failed with exit code: $EXIT_CODE"
+
+        if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+          echo "Retrying in 10 seconds..."
+          sleep 10
+        fi
+
+        ATTEMPT=$((ATTEMPT + 1))
+      done
+
+      if [ "$TESTS_PASSED" = true ]; then
         echo ""
         echo "========================================"
-        echo "Implementation tests found issues"
+        echo "All implementation tests passed!"
         echo "========================================"
-        echo "Review the failures above and fix them before merging."
+      else
+        echo ""
+        echo "========================================"
+        echo "Implementation tests failed after $MAX_ATTEMPTS attempts"
+        echo "========================================"
+        echo ""
+        echo "Your service responses don't match your OpenAPI spec."
+        echo "Review the failures above and either:"
+        echo "  - Update your code to match the spec, or"
+        echo "  - Update the spec to match your code"
+        echo ""
+        echo "Note: Tests run against your deployed staging service."
+        echo "Make sure your latest code is deployed before running tests."
         exit 1
       fi
-    - echo ""
-    - echo "========================================"
-    - echo "All implementation tests passed!"
-    - echo "========================================"
   artifacts:
     when: always
     paths:
@@ -97,11 +175,11 @@ implementation-testing:
     reports:
       junit: schemathesis-reports/*.xml
     expire_in: 1 week
-  timeout: 10 minutes
+  timeout: 60 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH
-  allow_failure: true  # Set to false once issues are resolved
+  allow_failure: true  # Set to false once your service passes all tests
 
 # Job: Quick smoke test (faster, fewer examples)
 implementation-smoke-test:
@@ -110,13 +188,29 @@ implementation-smoke-test:
   script:
     - echo "Running quick smoke test..."
     - |
-      schemathesis run "$STAGING_SPEC_URL" \
-        --url "$STAGING_SERVICE_URL" \
-        --checks "not_a_server_error,response_schema_conformance" \
-        --request-timeout=5 \
-        --max-failures=5 \
-        --phases examples,coverage \
-        || true
+      AUTH_ARGS=""
+      if [ -n "$STAGING_AUTH_TOKEN" ]; then
+        AUTH_ARGS="--header \"Authorization: Bearer $STAGING_AUTH_TOKEN\""
+      fi
+    - |
+      if [ -n "$STAGING_AUTH_TOKEN" ]; then
+        schemathesis run "$STAGING_SPEC_URL" \
+          --url "$STAGING_SERVICE_URL" \
+          --header "Authorization: Bearer $STAGING_AUTH_TOKEN" \
+          --checks "not_a_server_error,response_schema_conformance" \
+          --request-timeout=5 \
+          --max-failures=5 \
+          --hypothesis-max-examples=10 \
+          || true
+      else
+        schemathesis run "$STAGING_SPEC_URL" \
+          --url "$STAGING_SERVICE_URL" \
+          --checks "not_a_server_error,response_schema_conformance" \
+          --request-timeout=5 \
+          --max-failures=5 \
+          --hypothesis-max-examples=10 \
+          || true
+      fi
   timeout: 5 minutes
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"

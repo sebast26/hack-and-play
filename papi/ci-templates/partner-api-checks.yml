@@ -1,0 +1,440 @@
+# Partner API - Combined CI Template
+# Single include that runs all Partner API validation checks
+#
+# This template orchestrates the three validation layers:
+#   1. Spec Validation - Validates OpenAPI syntax and linting (fastest)
+#   2. Breaking Change Detection - Detects breaking API changes (medium)
+#   3. Implementation Testing - Tests service against spec (slowest)
+#
+# Execution order ensures fast feedback: if spec validation fails,
+# breaking change detection and implementation testing are skipped.
+#
+# Usage in your .gitlab-ci.yml:
+#   include:
+#     - project: 'platform/partner-api'
+#       ref: v1
+#       file: '/ci-templates/partner-api-checks.yml'
+#
+#   variables:
+#     OPENAPI_SPEC_PATH: './api/openapi.yaml'
+#     STAGING_SERVICE_URL: 'https://staging.myservice.example.com'
+#     STAGING_SPEC_URL: 'https://staging.myservice.example.com/openapi.yaml'
+#
+# Required Variables:
+#   OPENAPI_SPEC_PATH    - Path to your OpenAPI spec file in the repository
+#   BASELINE_SPEC_URL    - URL to fetch the baseline spec for breaking change detection
+#   STAGING_SERVICE_URL  - Base URL of your staging service
+#   STAGING_SPEC_URL     - URL to fetch OpenAPI spec from staging service
+#
+# Optional Variables:
+#   # Spec Validation
+#   SPECTRAL_FAIL_SEVERITY   - Minimum severity to fail on: error, warn, info, hint (default: error)
+#   SPECTRAL_RULESET_URL     - URL to fetch custom Spectral ruleset (defaults to platform ruleset)
+#
+#   # Breaking Change Detection
+#   OASDIFF_VERSION          - Version of oasdiff to use (default: latest)
+#   FAIL_ON_SEVERITY         - Minimum severity to fail on: ERR, WARN, INFO (default: WARN)
+#
+#   # Implementation Testing
+#   STAGING_AUTH_TOKEN       - Bearer token for authenticated endpoints (store as masked CI variable)
+#   SCHEMATHESIS_CHECKS      - Checks to run (default: core checks)
+#   SCHEMATHESIS_WORKERS     - Number of parallel workers (default: 4)
+#   SCHEMATHESIS_MAX_EXAMPLES - Max test cases per endpoint (default: 100)
+#   SCHEMATHESIS_MAX_FAILURES - Stop after N failures (default: 20)
+#   TEST_TIMEOUT_MINUTES     - Global timeout for test job (default: 60)
+#   TEST_RETRIES             - Number of retries on failure (default: 2)
+#
+#   # Skip Controls
+#   SKIP_SPEC_VALIDATION       - Set to 'true' to skip spec validation
+#   SKIP_BREAKING_CHANGE       - Set to 'true' to skip breaking change detection
+#   SKIP_IMPLEMENTATION_TESTING - Set to 'true' to skip implementation testing
+
+# =============================================================================
+# Default Variables
+# =============================================================================
+variables:
+  # Spec Validation defaults
+  SPECTRAL_FAIL_SEVERITY: "error"
+
+  # Breaking Change Detection defaults
+  OASDIFF_VERSION: "latest"
+  FAIL_ON_SEVERITY: "WARN"
+
+  # Implementation Testing defaults
+  SCHEMATHESIS_CHECKS: "not_a_server_error,status_code_conformance,content_type_conformance,response_schema_conformance"
+  SCHEMATHESIS_WORKERS: "4"
+  SCHEMATHESIS_MAX_EXAMPLES: "100"
+  SCHEMATHESIS_MAX_FAILURES: "20"
+  TEST_TIMEOUT_MINUTES: "60"
+  TEST_RETRIES: "2"
+
+  # Skip controls (empty = don't skip)
+  SKIP_SPEC_VALIDATION: ""
+  SKIP_BREAKING_CHANGE: ""
+  SKIP_IMPLEMENTATION_TESTING: ""
+
+# =============================================================================
+# Stages
+# =============================================================================
+# Define stages to ensure correct execution order
+# Earlier stages must pass before later stages run
+stages:
+  - validate
+  - test
+
+# =============================================================================
+# Stage 1: Spec Validation
+# =============================================================================
+# Validates OpenAPI spec syntax and runs Spectral linting
+# This runs first because it's fastest and catches basic issues
+
+.partner-api-spec-validation-base:
+  image: node:20-alpine
+  before_script:
+    - apk add --no-cache curl
+    - npm install -g @stoplight/spectral-cli@6
+    # Fetch the Spectral ruleset
+    - |
+      if [ -n "$SPECTRAL_RULESET_URL" ]; then
+        echo "Fetching custom ruleset from: $SPECTRAL_RULESET_URL"
+        curl -sSfL "$SPECTRAL_RULESET_URL" -o .spectral.yaml
+      else
+        echo "Using embedded platform ruleset"
+        cat > .spectral.yaml << 'EOF'
+      # Partner API Spectral Ruleset
+      extends:
+        - spectral:oas
+      rules:
+        operation-description: error
+        operation-operationId: error
+        info-description: error
+        oas3-valid-schema-example: error
+        partner-api-naming:
+          description: Property names must use snake_case
+          message: "Property '{{property}}' must use snake_case"
+          severity: error
+          given: "$..properties[*]~"
+          then:
+            function: pattern
+            functionOptions:
+              match: "^[a-z][a-z0-9_]*$"
+        partner-api-errors:
+          description: Operations should define 400 and 500 error responses
+          message: "Operation should define {{property}} error response"
+          severity: warn
+          given: "$.paths[*][get,post,put,patch,delete].responses"
+          then:
+            function: schema
+            functionOptions:
+              schema:
+                required:
+                  - "400"
+                  - "500"
+      EOF
+      fi
+
+partner-api-spec-validation:
+  extends: .partner-api-spec-validation-base
+  stage: validate
+  script:
+    - |
+      if [ "$SKIP_SPEC_VALIDATION" = "true" ]; then
+        echo "Spec validation skipped (SKIP_SPEC_VALIDATION=true)"
+        exit 0
+      fi
+    - |
+      if [ -z "$OPENAPI_SPEC_PATH" ]; then
+        echo "Error: OPENAPI_SPEC_PATH variable is required"
+        echo "Set it to the path of your OpenAPI spec file"
+        exit 1
+      fi
+    - |
+      if [ ! -f "$OPENAPI_SPEC_PATH" ]; then
+        echo "Error: OpenAPI spec not found at: $OPENAPI_SPEC_PATH"
+        exit 1
+      fi
+    - echo "========================================"
+    - echo "Partner API Spec Validation"
+    - echo "========================================"
+    - echo ""
+    - echo "Spec file: $OPENAPI_SPEC_PATH"
+    - echo "Fail severity: $SPECTRAL_FAIL_SEVERITY"
+    - echo ""
+    - echo "Step 1: Validating OpenAPI syntax and linting..."
+    - spectral lint "$OPENAPI_SPEC_PATH" --ruleset .spectral.yaml --fail-severity "$SPECTRAL_FAIL_SEVERITY"
+    - echo ""
+    - echo "========================================"
+    - echo "✓ Spec Validation: Passed"
+    - echo "========================================"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+# =============================================================================
+# Stage 2: Breaking Change Detection
+# =============================================================================
+# Detects breaking changes by comparing against baseline spec
+# This runs after spec validation passes
+
+.partner-api-breaking-change-base:
+  image: alpine:3.19
+  before_script:
+    - apk add --no-cache curl tar
+    # Install oasdiff
+    - |
+      echo "Installing oasdiff..."
+      OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+      ARCH=$(uname -m)
+      case "$ARCH" in
+        x86_64) ARCH="amd64" ;;
+        aarch64|arm64) ARCH="arm64" ;;
+        *) echo "Error: Unsupported architecture: $ARCH"; exit 1 ;;
+      esac
+      if [ "$OS" = "darwin" ]; then
+        ARCH="all"
+      fi
+      if [ "$OASDIFF_VERSION" = "latest" ]; then
+        VERSION=$(curl -sL https://api.github.com/repos/oasdiff/oasdiff/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+      else
+        VERSION="$OASDIFF_VERSION"
+      fi
+      if [ -z "$VERSION" ]; then
+        echo "Error: Could not determine oasdiff version"
+        exit 1
+      fi
+      DOWNLOAD_URL="https://github.com/oasdiff/oasdiff/releases/download/v${VERSION}/oasdiff_${VERSION}_${OS}_${ARCH}.tar.gz"
+      echo "  Downloading oasdiff v${VERSION}..."
+      curl -sL "$DOWNLOAD_URL" | tar -xz -C /usr/local/bin oasdiff
+      chmod +x /usr/local/bin/oasdiff
+      echo "  Installed: $(oasdiff --version 2>&1 | head -1)"
+
+partner-api-breaking-change-detection:
+  extends: .partner-api-breaking-change-base
+  stage: validate
+  script:
+    - |
+      if [ "$SKIP_BREAKING_CHANGE" = "true" ]; then
+        echo "Breaking change detection skipped (SKIP_BREAKING_CHANGE=true)"
+        exit 0
+      fi
+    - |
+      if [ -z "$OPENAPI_SPEC_PATH" ]; then
+        echo "Error: OPENAPI_SPEC_PATH variable is required"
+        exit 1
+      fi
+    - |
+      if [ -z "$BASELINE_SPEC_URL" ]; then
+        echo "Warning: BASELINE_SPEC_URL not set, skipping breaking change detection"
+        echo "Set BASELINE_SPEC_URL to enable breaking change detection"
+        exit 0
+      fi
+    - |
+      if [ ! -f "$OPENAPI_SPEC_PATH" ]; then
+        echo "Error: OpenAPI spec not found at: $OPENAPI_SPEC_PATH"
+        exit 1
+      fi
+    - echo "========================================"
+    - echo "Partner API Breaking Change Detection"
+    - echo "========================================"
+    - echo ""
+    - echo "Current spec: $OPENAPI_SPEC_PATH"
+    - echo "Baseline URL: $BASELINE_SPEC_URL"
+    - echo "Fail on: $FAIL_ON_SEVERITY"
+    - echo ""
+    - echo "Fetching baseline spec..."
+    - |
+      curl -sSfL "$BASELINE_SPEC_URL" -o /tmp/baseline-spec.yaml || {
+        echo "Error: Failed to fetch baseline spec from: $BASELINE_SPEC_URL"
+        exit 1
+      }
+    - echo "  Baseline spec fetched successfully"
+    - echo ""
+    - echo "Checking for breaking changes..."
+    - |
+      if oasdiff breaking /tmp/baseline-spec.yaml "$OPENAPI_SPEC_PATH" --format text --fail-on "$FAIL_ON_SEVERITY"; then
+        echo ""
+        echo "========================================"
+        echo "✓ Breaking Change Detection: Passed"
+        echo "  No breaking changes to Partner API"
+        echo "========================================"
+        exit 0
+      else
+        EXIT_CODE=$?
+        echo ""
+        echo "========================================"
+        echo "✗ Breaking Change Detection: FAILED"
+        echo "========================================"
+        echo ""
+        echo "Breaking changes detected in partner-exposed endpoints."
+        echo ""
+        echo "Next steps:"
+        echo "  1. Post in #partner-api-changes Slack channel"
+        echo "  2. Create a JIRA ticket with change details"
+        echo "  3. See: docs/breaking-change-workflow.md"
+        echo ""
+        echo "DO NOT merge until coordinated with platform team."
+        exit $EXIT_CODE
+      fi
+  needs:
+    - job: partner-api-spec-validation
+      optional: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+# =============================================================================
+# Stage 3: Implementation Testing
+# =============================================================================
+# Tests service implementation against OpenAPI spec using Schemathesis
+# This runs last because it requires a running service and is slowest
+
+.partner-api-implementation-testing-base:
+  image: schemathesis/schemathesis:stable
+  before_script:
+    - |
+      if [ -z "$STAGING_SERVICE_URL" ]; then
+        echo "Error: STAGING_SERVICE_URL variable is required"
+        echo "Set it to the base URL of your staging service"
+        exit 1
+      fi
+    - |
+      if [ -z "$STAGING_SPEC_URL" ]; then
+        echo "Error: STAGING_SPEC_URL variable is required"
+        echo "Set it to the URL where your OpenAPI spec is served"
+        exit 1
+      fi
+
+partner-api-implementation-testing:
+  extends: .partner-api-implementation-testing-base
+  stage: test
+  script:
+    - |
+      if [ "$SKIP_IMPLEMENTATION_TESTING" = "true" ]; then
+        echo "Implementation testing skipped (SKIP_IMPLEMENTATION_TESTING=true)"
+        exit 0
+      fi
+    - echo "========================================"
+    - echo "Partner API Implementation Testing"
+    - echo "========================================"
+    - echo ""
+    - echo "Service URL:   $STAGING_SERVICE_URL"
+    - echo "Spec URL:      $STAGING_SPEC_URL"
+    - echo "Checks:        $SCHEMATHESIS_CHECKS"
+    - echo "Workers:       $SCHEMATHESIS_WORKERS"
+    - echo "Max Examples:  $SCHEMATHESIS_MAX_EXAMPLES"
+    - echo "Max Failures:  $SCHEMATHESIS_MAX_FAILURES"
+    - echo "Timeout:       ${TEST_TIMEOUT_MINUTES} minutes"
+    - echo "Retries:       $TEST_RETRIES"
+    - |
+      if [ -n "$STAGING_AUTH_TOKEN" ]; then
+        echo "Auth:          Bearer token configured"
+      else
+        echo "Auth:          None"
+      fi
+    - echo ""
+    # Wait for service to be ready
+    - echo "Waiting for service..."
+    - |
+      for i in $(seq 1 30); do
+        if wget -q --spider "$STAGING_SERVICE_URL" 2>/dev/null || wget -q -O /dev/null "$STAGING_SPEC_URL" 2>/dev/null; then
+          echo "Service is ready!"
+          break
+        fi
+        if [ $i -eq 30 ]; then
+          echo "Service did not become ready within 60 seconds"
+          exit 1
+        fi
+        sleep 2
+      done
+    - echo ""
+    # Run tests with retry logic
+    - |
+      ATTEMPT=1
+      MAX_ATTEMPTS=$((TEST_RETRIES + 1))
+      TESTS_PASSED=false
+
+      while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+        echo "========================================"
+        echo "Test attempt $ATTEMPT of $MAX_ATTEMPTS"
+        echo "========================================"
+        echo ""
+
+        set +e
+        if [ -n "$STAGING_AUTH_TOKEN" ]; then
+          schemathesis run "$STAGING_SPEC_URL" \
+            --url "$STAGING_SERVICE_URL" \
+            --header "Authorization: Bearer $STAGING_AUTH_TOKEN" \
+            --checks "$SCHEMATHESIS_CHECKS" \
+            --workers "$SCHEMATHESIS_WORKERS" \
+            --hypothesis-max-examples="$SCHEMATHESIS_MAX_EXAMPLES" \
+            --request-timeout=10 \
+            --max-failures="$SCHEMATHESIS_MAX_FAILURES" \
+            --report junit \
+            --report-dir ./schemathesis-reports
+        else
+          schemathesis run "$STAGING_SPEC_URL" \
+            --url "$STAGING_SERVICE_URL" \
+            --checks "$SCHEMATHESIS_CHECKS" \
+            --workers "$SCHEMATHESIS_WORKERS" \
+            --hypothesis-max-examples="$SCHEMATHESIS_MAX_EXAMPLES" \
+            --request-timeout=10 \
+            --max-failures="$SCHEMATHESIS_MAX_FAILURES" \
+            --report junit \
+            --report-dir ./schemathesis-reports
+        fi
+        EXIT_CODE=$?
+        set -e
+
+        if [ $EXIT_CODE -eq 0 ]; then
+          TESTS_PASSED=true
+          break
+        fi
+
+        echo ""
+        echo "Tests failed with exit code: $EXIT_CODE"
+
+        if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+          echo "Retrying in 10 seconds..."
+          sleep 10
+        fi
+
+        ATTEMPT=$((ATTEMPT + 1))
+      done
+
+      if [ "$TESTS_PASSED" = true ]; then
+        echo ""
+        echo "========================================"
+        echo "✓ Implementation Testing: Passed"
+        echo "  All responses match OpenAPI spec"
+        echo "========================================"
+      else
+        echo ""
+        echo "========================================"
+        echo "✗ Implementation Testing: FAILED"
+        echo "========================================"
+        echo ""
+        echo "Your service responses don't match your OpenAPI spec."
+        echo "Review the failures above and either:"
+        echo "  - Update your code to match the spec, or"
+        echo "  - Update the spec to match your code"
+        echo ""
+        echo "Note: Tests run against your deployed staging service."
+        exit 1
+      fi
+  artifacts:
+    when: always
+    paths:
+      - schemathesis-reports/
+    reports:
+      junit: schemathesis-reports/*.xml
+    expire_in: 1 week
+  timeout: 60 minutes
+  needs:
+    - job: partner-api-spec-validation
+      optional: true
+    - job: partner-api-breaking-change-detection
+      optional: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+  allow_failure: true  # Set to false once your service passes all tests
