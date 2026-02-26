@@ -1,0 +1,41 @@
+@reference "../../app/globals.css";
+
+@keyframes shimmer {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.card {
+  @apply bg-light border border-lighter rounded-xl p-6 w-full;
+}
+
+.header {
+  @apply flex items-center gap-4 mb-6;
+}
+
+.avatar {
+  @apply bg-lighter rounded-full size-16 shrink-0;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+.headerLines {
+  @apply flex flex-col gap-3 flex-1;
+}
+
+.body {
+  @apply flex flex-col gap-3;
+}
+
+.lineFull,
+.lineLong,
+.lineMid,
+.lineShort {
+  @apply bg-lighter rounded-md h-4;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+.lineFull  { @apply w-full; }
+.lineLong  { @apply w-4/5; }
+.lineMid   { @apply w-3/5; }
+.lineShort { @apply w-2/5; }
