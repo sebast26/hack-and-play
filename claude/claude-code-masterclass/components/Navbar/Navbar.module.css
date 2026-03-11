@@ -15,3 +15,7 @@
 svg.logo {
   display: inline-block;
 }
+
+.logoutBtn {
+  @apply bg-gradient-to-r from-secondary to-primary text-white font-semibold px-4 py-2 rounded-full flex items-center gap-2;
+}

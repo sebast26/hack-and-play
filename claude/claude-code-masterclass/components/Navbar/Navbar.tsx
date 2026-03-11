@@ -1,13 +1,23 @@
 "use client";
 
-import { Clock8 } from "lucide-react";
+import { Clock8, LogOut } from "lucide-react";
 import Link from "next/link";
+import { signOut } from "firebase/auth";
 import Avatar from "@/components/Avatar";
 import { useUser } from "@/context/AuthContext";
+import { auth } from "@/lib/firebase/config";
 import styles from "./Navbar.module.css";
 
 export default function Navbar() {
   const { user, isLoading } = useUser();
+
+  async function handleLogout() {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  }
 
   return (
     <div className={styles.siteNav}>
@@ -22,6 +32,14 @@ export default function Navbar() {
           <div>Tiny missions. Big office mischief.</div>
         </header>
         <ul>
+          {!isLoading && user && (
+            <li>
+              <button className={styles.logoutBtn} onClick={handleLogout}>
+                <LogOut size={16} />
+                Logout
+              </button>
+            </li>
+          )}
           <li>
             <Link href="/heists/create" className="btn">
               Create Heist
