@@ -27,3 +27,7 @@
 .error {
   @apply text-sm text-error text-center;
 }
+
+.success {
+  @apply text-sm text-success text-center;
+}

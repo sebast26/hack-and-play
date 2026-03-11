@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { signUpUser } from "@/lib/firebase/signup";
+import { loginUser } from "@/lib/firebase/login";
 import styles from "./AuthForm.module.css";
 
 interface AuthFormProps {
@@ -16,6 +17,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -23,15 +25,18 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (isLogin) {
-      console.log({ email, password });
-      return;
-    }
     setError(null);
+    setSuccess(false);
     setIsLoading(true);
     try {
-      await signUpUser(email, password);
-      router.push("/heists");
+      if (isLogin) {
+        await loginUser(email, password);
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      } else {
+        await signUpUser(email, password);
+        router.push("/heists");
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
@@ -72,6 +77,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
       </div>
 
       {error && <p className={styles.error}>{error}</p>}
+      {success && <p className={styles.success}>You&apos;re logged in!</p>}
 
       <button type="submit" className="btn" disabled={isLoading}>
         {isLogin ? "Login" : "Sign Up"}
