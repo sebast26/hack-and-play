@@ -1,6 +1,16 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
+
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
+vi.mock("@/lib/firebase/signup", () => ({
+  signUpUser: vi.fn().mockResolvedValue(undefined),
+}));
+
 import AuthForm from "@/components/AuthForm";
 
 describe("AuthForm", () => {

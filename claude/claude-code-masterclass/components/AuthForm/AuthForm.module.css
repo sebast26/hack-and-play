@@ -23,3 +23,7 @@
     @apply text-primary hover:underline;
   }
 }
+
+.error {
+  @apply text-sm text-error text-center;
+}

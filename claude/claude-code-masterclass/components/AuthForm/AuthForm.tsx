@@ -2,7 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import { signUpUser } from "@/lib/firebase/signup";
 import styles from "./AuthForm.module.css";
 
 interface AuthFormProps {
@@ -13,12 +15,30 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const isLogin = mode === "login";
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    console.log({ email, password });
+    if (isLogin) {
+      console.log({ email, password });
+      return;
+    }
+    setError(null);
+    setIsLoading(true);
+    try {
+      await signUpUser(email, password);
+      router.push("/heists");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -51,7 +71,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
         </button>
       </div>
 
-      <button type="submit" className="btn">
+      {error && <p className={styles.error}>{error}</p>}
+
+      <button type="submit" className="btn" disabled={isLoading}>
         {isLogin ? "Login" : "Sign Up"}
       </button>
 
