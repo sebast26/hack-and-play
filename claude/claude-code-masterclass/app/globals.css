@@ -49,3 +49,13 @@ svg.logo {
 .btn {
   @apply bg-primary text-dark font-semibold px-4 py-2 rounded-lg hover:bg-secondary transition-colors;
 }
+
+/* auth loader */
+@keyframes spin-clock {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.auth-loader {
+  @apply flex items-center justify-center min-h-lvh;
+  svg { animation: spin-clock 1s linear infinite; }
+}
