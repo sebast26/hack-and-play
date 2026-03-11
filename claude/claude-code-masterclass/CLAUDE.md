@@ -49,3 +49,7 @@ The home page (`(public)/page.tsx`) is a splash/redirect page only — it does n
 - Do NOT apply tailwind classes directly in component template unless essential or just 1 at most. If an element needs more than a single tailwind class, combine them in custom class using `@apply` directive.
 - Use minimal project dependency possible.
 - Use the `git switch -c` command to switch to new branch, not `git checkout`.
+
+## Checking documentation
+
+- **important:** When implementing any lib/framework-specific features, ALWAYS check the appropriate lib/framework documentation using Context7 MCP server before writing any code.
