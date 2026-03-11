@@ -10,7 +10,8 @@
       "mcp__firebase__firebase_update_environment",
       "mcp__firebase__firebase_list_projects",
       "mcp__firebase__firebase_create_app",
-      "mcp__firebase__firebase_read_resources"
+      "mcp__firebase__firebase_read_resources",
+      "Bash(npm test:*)"
     ]
   },
   "hooks": {
