@@ -1,0 +1,258 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Courier+Prime:wght@400;700&display=swap');
+
+/* ── Splash shell ── */
+.splash {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 2rem;
+  overflow: hidden;
+}
+
+/* Tactical dot grid */
+.grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(194, 122, 255, 0.18) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 90% 90% at 30% 40%, black 30%, transparent 80%);
+  pointer-events: none;
+}
+
+/* Ambient glow orbs */
+.glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.glow::before {
+  content: '';
+  position: absolute;
+  width: 55vw;
+  height: 55vw;
+  top: -15vw;
+  left: -10vw;
+  background: radial-gradient(circle, rgba(194, 122, 255, 0.12) 0%, transparent 65%);
+  border-radius: 50%;
+}
+
+.glow::after {
+  content: '';
+  position: absolute;
+  width: 40vw;
+  height: 40vw;
+  bottom: -10vw;
+  right: -5vw;
+  background: radial-gradient(circle, rgba(251, 100, 182, 0.08) 0%, transparent 65%);
+  border-radius: 50%;
+}
+
+/* Scanline sweeper */
+.scanline {
+  position: fixed;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(194, 122, 255, 0.4) 50%, transparent 100%);
+  animation: scan 5s linear infinite;
+  pointer-events: none;
+  z-index: 100;
+}
+
+@keyframes scan {
+  from { top: -2px; }
+  to   { top: 100vh; }
+}
+
+/* ── Hero content ── */
+.hero {
+  position: relative;
+  z-index: 1;
+  max-width: 72rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Status badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-success);
+  background: rgba(5, 223, 114, 0.07);
+  border: 1px solid rgba(5, 223, 114, 0.25);
+  padding: 0.3rem 0.8rem;
+  border-radius: 2px;
+  margin-bottom: 1.75rem;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-success);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.3; transform: scale(0.7); }
+}
+
+/* ── Title ── */
+.title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(5.5rem, 20vw, 15rem);
+  line-height: 0.82;
+  letter-spacing: 0.03em;
+  margin: 0 0 0.5rem;
+  color: var(--color-heading);
+}
+
+.clock {
+  display: inline-block;
+  vertical-align: -0.07em;
+  width: 0.82em;
+  height: 0.82em;
+  color: var(--color-primary);
+  filter: drop-shadow(0 0 10px rgba(194, 122, 255, 0.9));
+  animation: tick 2s steps(8) infinite;
+}
+
+@keyframes tick {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.heist {
+  display: block;
+  background: linear-gradient(120deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Tagline ── */
+.tagline {
+  font-family: 'Courier Prime', monospace;
+  font-size: clamp(0.95rem, 2vw, 1.25rem);
+  color: var(--color-primary);
+  letter-spacing: 0.08em;
+  margin-bottom: 1.75rem;
+}
+
+.cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.9em;
+  background: var(--color-primary);
+  margin-left: 3px;
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── Description ── */
+.description {
+  max-width: 38rem;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--color-body);
+  border-left: 2px solid rgba(194, 122, 255, 0.35);
+  padding-left: 1.25rem;
+  margin-bottom: 2.25rem;
+}
+
+/* ── Feature list ── */
+.features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.5rem;
+}
+
+.featureItem {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-body);
+}
+
+.featureItem svg {
+  color: var(--color-secondary);
+  flex-shrink: 0;
+}
+
+/* ── Actions ── */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-dark);
+  background: linear-gradient(120deg, var(--color-primary), var(--color-secondary));
+  padding: 0.9rem 2.25rem;
+  border-radius: 2px;
+  text-decoration: none;
+  box-shadow: 0 0 24px rgba(194, 122, 255, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 48px rgba(194, 122, 255, 0.55), 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.cta:active {
+  transform: translateY(0);
+}
+
+.loginLink {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.85rem;
+  color: var(--color-body);
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  transition: color 0.15s ease;
+}
+
+.loginLink span {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.loginLink:hover {
+  color: var(--color-heading);
+}
