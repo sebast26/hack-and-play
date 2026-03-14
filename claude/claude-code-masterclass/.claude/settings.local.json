@@ -11,7 +11,8 @@
       "mcp__firebase__firebase_list_projects",
       "mcp__firebase__firebase_create_app",
       "mcp__firebase__firebase_read_resources",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(npx vitest:*)"
     ]
   },
   "hooks": {

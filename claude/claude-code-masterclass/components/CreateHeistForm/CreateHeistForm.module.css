@@ -1,0 +1,21 @@
+@reference "../../app/globals.css";
+
+.form {
+  @apply flex flex-col gap-4 mt-6 mx-auto w-full max-w-sm;
+}
+
+.input {
+  @apply w-full px-4 py-2 rounded-lg bg-lighter text-heading border border-body/20 outline-none focus:border-primary;
+}
+
+.textarea {
+  @apply w-full px-4 py-2 rounded-lg bg-lighter text-heading border border-body/20 outline-none focus:border-primary resize-none;
+}
+
+.select {
+  @apply w-full px-4 py-2 rounded-lg bg-lighter text-heading border border-body/20 outline-none focus:border-primary cursor-pointer;
+}
+
+.error {
+  @apply text-sm text-error text-center;
+}
