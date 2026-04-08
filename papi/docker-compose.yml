@@ -1,6 +1,6 @@
 services:
   gateway:
-    image: devopsfaith/krakend:2.5
+    build: ./gateway
     ports:
       - "8080:8080"
     volumes:
@@ -8,6 +8,7 @@ services:
     depends_on:
       - orders
       - users
+      - inventory
     networks:
       - partner-api
 
@@ -22,6 +23,13 @@ services:
     build: ./mocks/users
     expose:
       - "8082"
+    networks:
+      - partner-api
+
+  inventory:
+    build: ./mocks/inventory
+    expose:
+      - "8083"
     networks:
       - partner-api
 

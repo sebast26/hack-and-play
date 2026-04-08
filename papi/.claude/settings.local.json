@@ -4,7 +4,16 @@
       "Bash(./scripts/breaking-change-check.sh:*)",
       "Bash(./scripts/aggregate.sh:*)",
       "Bash(./scripts/validate.sh:*)",
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(curl -s -o /dev/null -w \"HTTP status: %{http_code}\\\\n\" http://localhost:8080/partner/orders)",
+      "Bash(curl -s -w \"\\\\nHTTP status: %{http_code}\\\\n\" http://localhost:8080/partner/order-inventory)",
+      "Bash(curl -s -w \"\\\\nHTTP status: %{http_code}\\\\n\" http://localhost:8080/partner/inventory/check)",
+      "Bash(__NEW_LINE_bdefa525a9e4d88b__ echo:*)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -o /dev/null -w \"HTTP status: %{http_code}\\\\n\" http://localhost:8080/partner/order-inventory)",
+      "Bash(curl -s -o /dev/null -w \"HTTP status: %{http_code}\\\\n\" http://localhost:8080/partner/inventory/check)"
     ]
   }
 }

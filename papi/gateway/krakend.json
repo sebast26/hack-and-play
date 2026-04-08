@@ -6,9 +6,22 @@
   "cache_ttl": "0s",
   "output_encoding": "json",
   "port": 8080,
+  "plugin": {
+    "pattern": ".so",
+    "folder": "/opt/krakend/plugins/"
+  },
   "extra_config": {
     "router": {
       "return_error_msg": true
+    },
+    "plugin/http-server": {
+      "name": ["error-status-propagator"],
+      "error-status-propagator": {
+        "error_key_prefix": "error_",
+        "paths": [
+          "/partner/order-inventory"
+        ]
+      }
     }
   },
   "endpoints": [
@@ -23,8 +36,7 @@
           "encoding": "json"
         }
       ]
-    }
-,
+    },
     {
       "endpoint": "/partner/orders/{id}",
       "method": "GET",
@@ -36,8 +48,7 @@
           "encoding": "json"
         }
       ]
-    }
-,
+    },
     {
       "endpoint": "/partner/users",
       "method": "GET",
@@ -49,8 +60,7 @@
           "encoding": "json"
         }
       ]
-    }
-,
+    },
     {
       "endpoint": "/partner/users/{id}",
       "method": "GET",
@@ -62,7 +72,47 @@
           "encoding": "json"
         }
       ]
+    },
+    {
+      "endpoint": "/partner/order-inventory",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/api/v3/orders",
+          "host": ["http://orders:8081"],
+          "encoding": "json",
+          "group": "orders"
+        },
+        {
+          "url_pattern": "/api/v1/inventory/check",
+          "host": ["http://inventory:8083"],
+          "encoding": "json",
+          "group": "inventory",
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "inventory_check"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "endpoint": "/partner/inventory/check",
+      "method": "GET",
+      "output_encoding": "json",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/inventory/check",
+          "host": ["http://inventory:8083"],
+          "encoding": "json",
+          "extra_config": {
+            "backend/http": {
+              "return_error_code": true
+            }
+          }
+        }
+      ]
     }
-
   ]
 }
